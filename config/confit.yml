@@ -1,0 +1,9 @@
+kafkaConfig:
+  brokers:
+  -  'localhost:9092'
+  topic: 
+    LOGS: 'logs'
+    LOGS_TRANSFORMED: 'user-logs'
+  
+mysqlConfig:
+  uri: ""

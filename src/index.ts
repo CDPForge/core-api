@@ -1,12 +1,5 @@
-import express from 'express';
-const app = express();
+import path from 'path';
+import Config from './config';
+import { Sequelize } from 'sequelize-typescript';
 
-app.get('/', (req, res) => {
-  const name = process.env.NAME || 'World';
-  res.send(`Hello ${name}!`);
-});
-
-const port = parseInt(process.env.PORT || '3000');
-app.listen(port, () => {
-  console.log(`listening on port ${port}`);
-});
+const sequelize = new Sequelize(Config.getInstance().config.mysqlConfig.uri,{models: [path.join(__dirname, './models')]});
