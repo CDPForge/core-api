@@ -1,10 +1,11 @@
-import { Column, DataType, Model, Table } from 'sequelize-typescript';
+import { Column, DataType, Model, Table, HasMany } from 'sequelize-typescript';
+import UserClientRoles from './userclientroles';
 
 @Table({
     tableName: 'userpanel',
     timestamps: true
 })
-export default class Client extends Model {
+export default class UserPanel extends Model {
     @Column({
         type: DataType.INTEGER,
         primaryKey: true,
@@ -22,7 +23,7 @@ export default class Client extends Model {
         type: DataType.STRING,
         allowNull: false
     })
-    passowrd!: string;
+    password!: string;
 
     @Column({
         type: DataType.STRING,
@@ -42,4 +43,6 @@ export default class Client extends Model {
     })
     active!: boolean;
 
+    @HasMany(() => UserClientRoles)
+    UserClientRoles!: UserClientRoles[];
 }
