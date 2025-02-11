@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import { EndpointConfig } from './endpoints';
-import { getTotalUViews, createGetUViewsByGroup, getDailyViews, getNewReturning } from '../../controllers/uviewsController';
+import { getTotalUViews, createGetUViewsByGroup, getDailyUViews, getNewReturning } from '../../controllers/uviewsController';
 
 const endpoints: Record<string, EndpointConfig> = {
     'uviews-totale': {
@@ -36,7 +36,7 @@ const endpoints: Record<string, EndpointConfig> = {
     'uviews-daily': {
         path: '/api/analytics/uviews/daily',
         method: 'get',
-        handler: getDailyViews,
+        handler: getDailyUViews,
         supportsBulk: true
     },
     'new-vs-returning': {

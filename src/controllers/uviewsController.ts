@@ -75,8 +75,8 @@ export const getTotalUViews: RequestHandler = async (req, res) => {
     res.json({
       success: true,
       data: {
-        current_views: response.aggregations?.current_views?.unique_devices?.value || 0,
-        previous_views: response.aggregations?.previous_views?.unique_devices?.value || 0
+        current_unique_views: response.aggregations?.current_views?.unique_devices?.value || 0,
+        previous_unique_views: response.aggregations?.previous_views?.unique_devices?.value || 0
       }
     });
   } catch (error) {
@@ -96,6 +96,7 @@ export const createGetUViewsByGroup = (field: string): RequestHandler => async (
       success: false,
       message: 'Parametri from e to richiesti'
     });
+    return;
   }
 
   try {
@@ -137,7 +138,7 @@ export const createGetUViewsByGroup = (field: string): RequestHandler => async (
   }
 };
 
-export const getDailyViews: RequestHandler = async (req, res) => {
+export const getDailyUViews: RequestHandler = async (req, res) => {
   const { from, to } = req.query;
   const clientId = req.user.currentClientId;
 
@@ -146,47 +147,47 @@ export const getDailyViews: RequestHandler = async (req, res) => {
       success: false,
       message: 'Parametri from e to richiesti'
     });
+  }
 
-    try {
-      const response: SearchResponse<any, any> = await esClient.search({
-        index: getIndexPattern(clientId),
-        body: {
-          query: buildBaseQuery({ clientId, from: from as string, to: to as string, action: 'view' }),
-          size: 0,
-          aggs: {
-            daily: {
-              date_histogram: {
-                field: 'date',
-                calendar_interval: 'day',
-                format: 'yyyy-MM-dd'
-              },
-              aggs: {
-                unique_devices: {
-                  cardinality: {
-                    field: 'deviceId'
-                  }
+  try {
+    const response: SearchResponse<any, any> = await esClient.search({
+      index: getIndexPattern(clientId),
+      body: {
+        query: buildBaseQuery({ clientId, from: from as string, to: to as string, action: 'view' }),
+        size: 0,
+        aggs: {
+          daily: {
+            date_histogram: {
+              field: 'date',
+              calendar_interval: 'day',
+              format: 'yyyy-MM-dd'
+            },
+            aggs: {
+              unique_devices: {
+                cardinality: {
+                  field: 'deviceId'
                 }
               }
             }
           }
         }
-      });
+      }
+    });
 
-      res.json({
-        success: true,
-        data: (response.aggregations?.daily as { buckets: any[] })?.buckets?.map((bucket) => ({
-          date: bucket.key_as_string,
-          count: bucket.unique_devices.value
-        })) || []
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Errore nel recupero delle statistiche'
-      });
-    }
-  };
-} 
+    res.json({
+      success: true,
+      data: (response.aggregations?.daily as { buckets: any[] })?.buckets?.map((bucket) => ({
+        date: bucket.key_as_string,
+        count: bucket.unique_devices.value
+      })) || []
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Errore nel recupero delle statistiche'
+    });
+  }
+};
 
 export const getNewReturning: RequestHandler = async (req, res) => {
   const { from, to } = req.query;

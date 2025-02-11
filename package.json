@@ -29,6 +29,7 @@
     "yaml": "^2.7.0"
   },
   "devDependencies": {
+    "@jest-mock/express": "^3.0.0",
     "@types/bcrypt": "^5.0.2",
     "@types/elasticsearch": "^5.0.43",
     "@types/express-session": "^1.18.1",

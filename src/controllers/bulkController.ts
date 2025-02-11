@@ -69,8 +69,8 @@ export const bulkRequest: RequestHandler = async (req: Request, res: Response) =
 
         return {
           endpoint: request.endpoint,
-          success: responseStatus === 200,
-          data: responseData
+          success: responseData.success,
+          data: responseData.data
         };
       })
     );

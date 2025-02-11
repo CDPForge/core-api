@@ -3,15 +3,15 @@ import express from 'express';
 import passport from 'passport';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
-import authRoutes from '../src/routes/auth';
+import authRoutes from '../../src/routes/auth';
 import bcrypt from 'bcrypt';
 
 // Mock sequelize-typescript prima di importare i modelli
 jest.mock('sequelize-typescript');
 
 // Ora importiamo i modelli e la configurazione passport
-import UserPanel from '../src/models/userpanel';
-import '../src/config/passport';
+import UserPanel from '../../src/models/userpanel';
+import '../../src/config/passport';
 
 const app = express();
 
@@ -28,7 +28,7 @@ app.use(passport.session());
 app.use('/auth', authRoutes);
 
 // Mock di UserPanel
-jest.mock('../src/models/userpanel', () => ({
+jest.mock('../../src/models/userpanel', () => ({
   findOne: jest.fn(),
   findByPk: jest.fn()
 }));

@@ -18,7 +18,7 @@ export const endpoints: Record<string, EndpointConfig> = Object.assign(views, uv
 // Helper per il bulk controller
 export const bulkEndpointMap = Object.entries(endpoints)
   .filter(([_, config]) => config.supportsBulk)
-  .reduce((acc, [key, config]) => ({
+  .reduce((acc, [_, config]) => ({
     ...acc,
-    [key]: config.handler
+    [config.path]: config.handler
   }), {} as Record<string, RequestHandler>); 

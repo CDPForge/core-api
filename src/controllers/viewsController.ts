@@ -139,7 +139,8 @@ export const getDailyViews: RequestHandler = async (req, res) => {
       success: false,
       message: 'Parametri from e to richiesti'
     });
-
+    return;
+  }
     try {
       const response: SearchResponse<any, any> = await esClient.search({
         index: getIndexPattern(clientId),
@@ -172,4 +173,3 @@ export const getDailyViews: RequestHandler = async (req, res) => {
       });
     }
   };
-} 
