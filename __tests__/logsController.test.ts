@@ -3,7 +3,7 @@ import express from 'express';
 import { Client } from '@elastic/elasticsearch';
 import session from 'express-session';
 import { Request, Response } from 'express';
-import { getDailyPageViews, getPageViews, getNewUsers } from '../src/controllers/userController';
+import { getDailyPageViews, getPageViews, getNewUsers } from '../src/controllers/logsController';
 
 jest.mock('@elastic/elasticsearch');
 
