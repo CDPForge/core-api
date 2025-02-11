@@ -1,5 +1,5 @@
 import { Request, Response, RequestHandler } from 'express';
-import { bulkEndpointMap } from '../config/endpoints';
+import { bulkEndpointMap } from '../config/endpoints/endpoints';
 
 const MAX_BULK_REQUESTS = 10;
 

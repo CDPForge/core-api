@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { endpoints } from '../config/endpoints';
+import { endpoints } from '../config/endpoints/endpoints';
 
 const router = Router();
 
