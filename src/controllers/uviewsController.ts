@@ -1,6 +1,19 @@
 import { RequestHandler } from 'express';
-import { esClient, getIndexPattern, buildBaseQuery } from '../utils/elasticHelper';
-import { SearchResponse } from '@elastic/elasticsearch/lib/api/types';
+import { esClient, getIndexPattern, buildBaseQuery, esMapping, buildGroupByQuery } from '../utils/elasticHelper';
+import { AggregationsAggregationContainer, SearchResponse } from '@elastic/elasticsearch/lib/api/types';
+
+const uniqueDevicesAgg: AggregationsAggregationContainer = {
+  nested: {
+    path: esMapping.DEVICE.PATH
+  },
+  aggs: {
+    unique_devices: {
+      cardinality: {
+        field: esMapping.DEVICE.ID
+      }
+    }
+  }
+};
 
 export const getTotalUViews: RequestHandler = async (req, res) => {
   const { from, to } = req.query;
@@ -31,42 +44,34 @@ export const getTotalUViews: RequestHandler = async (req, res) => {
     const response: SearchResponse<any, any> = await esClient.search({
       index: getIndexPattern(clientId),
       body: {
-        query: buildBaseQuery({ clientId, from: prevFrom as string, to: prevTo as string, action: 'view' }),
+        query: buildBaseQuery({ clientId, from: prevFrom as string, to: to as string, event: 'view' }),
         size: 0
       },
       aggs: {
         current_views: {
           filter: {
             range: {
-              date: {
+              [esMapping.DATE]: {
                 gte: from,
                 lte: to
               }
             }
           },
           aggs: {
-            unique_devices: {
-              cardinality: {
-                field: 'deviceId'
-              }
-            }
+            nested_device: uniqueDevicesAgg
           }
         },
         previous_views: {
           filter: {
             range: {
-              date: {
+              [esMapping.DATE]: {
                 gte: prevFrom,
                 lte: prevTo
               }
             }
           },
           aggs: {
-            unique_devices: {
-              cardinality: {
-                field: 'deviceId'
-              }
-            }
+            nested_device: uniqueDevicesAgg
           }
         }
       }
@@ -75,8 +80,8 @@ export const getTotalUViews: RequestHandler = async (req, res) => {
     res.json({
       success: true,
       data: {
-        current_unique_views: response.aggregations?.current_views?.unique_devices?.value || 0,
-        previous_unique_views: response.aggregations?.previous_views?.unique_devices?.value || 0
+        current_unique_views: response.aggregations?.current_views?.nested_device?.unique_devices?.value || 0,
+        previous_unique_views: response.aggregations?.previous_views?.nested_device?.unique_devices?.value || 0
       }
     });
   } catch (error) {
@@ -103,31 +108,19 @@ export const createGetUViewsByGroup = (field: string): RequestHandler => async (
     const response: SearchResponse<any, any> = await esClient.search({
       index: getIndexPattern(clientId),
       body: {
-        query: buildBaseQuery({ clientId, from: from as string, to: to as string, action: 'view' }),
+        query: buildBaseQuery({ clientId, from: from as string, to: to as string, event: 'view' }),
         size: 0,
         aggs: {
-          group_by: {
-            terms: {
-              field: field,
-              size: 100
-            },
-            aggs: {
-              unique_devices: {
-                cardinality: {
-                  field: 'deviceId'
-                }
-              }
-            }
-          }
+          group_by: buildGroupByQuery(field, uniqueDevicesAgg, "unique_devices")
         }
       }
     });
 
     res.json({
       success: true,
-      data: (response.aggregations?.group_by as { buckets: any[] })?.buckets?.map((bucket) => ({
+      data: (response.aggregations?.group_by?.inner_group_by ?? response.aggregations?.group_by)?.buckets?.map((bucket: any) => ({
         key: bucket.key,
-        count: bucket.unique_devices.value
+        count: bucket.nested_device.unique_devices.value
       })) || []
     });
   } catch (error) {
@@ -153,21 +146,17 @@ export const getDailyUViews: RequestHandler = async (req, res) => {
     const response: SearchResponse<any, any> = await esClient.search({
       index: getIndexPattern(clientId),
       body: {
-        query: buildBaseQuery({ clientId, from: from as string, to: to as string, action: 'view' }),
+        query: buildBaseQuery({ clientId, from: from as string, to: to as string, event: 'view' }),
         size: 0,
         aggs: {
           daily: {
             date_histogram: {
-              field: 'date',
+              field: esMapping.DATE,
               calendar_interval: 'day',
               format: 'yyyy-MM-dd'
             },
             aggs: {
-              unique_devices: {
-                cardinality: {
-                  field: 'deviceId'
-                }
-              }
+              nested_device: uniqueDevicesAgg
             }
           }
         }
@@ -178,7 +167,7 @@ export const getDailyUViews: RequestHandler = async (req, res) => {
       success: true,
       data: (response.aggregations?.daily as { buckets: any[] })?.buckets?.map((bucket) => ({
         date: bucket.key_as_string,
-        count: bucket.unique_devices.value
+        count: bucket.nested_device?.unique_devices?.value
       })) || []
     });
   } catch (error) {
@@ -218,7 +207,7 @@ export const getNewReturning: RequestHandler = async (req, res) => {
     const response: SearchResponse<any, any> = await esClient.search({
       index: `users-logs-${clientId}`,
       size: 0,
-      query: buildBaseQuery({ clientId, action: 'view' }),
+      query: buildBaseQuery({ clientId, event: 'view' }),
       aggs: {
         new_users: {
           filter: {
@@ -245,11 +234,7 @@ export const getNewReturning: RequestHandler = async (req, res) => {
             }
           },
           aggs: {
-            unique_new_users: {
-              cardinality: {
-                field: 'deviceId'
-              }
-            }
+            nested_device: uniqueDevicesAgg
           }
         },
         returning_users: {
@@ -275,11 +260,7 @@ export const getNewReturning: RequestHandler = async (req, res) => {
             }
           },
           aggs: {
-            unique_returning_users: {
-              cardinality: {
-                field: 'deviceId'
-              }
-            }
+            nested_device: uniqueDevicesAgg
           }
         },
         prev_new_users: {
@@ -307,11 +288,7 @@ export const getNewReturning: RequestHandler = async (req, res) => {
             }
           },
           aggs: {
-            unique_new_users: {
-              cardinality: {
-                field: 'deviceId'
-              }
-            }
+            nested_device: uniqueDevicesAgg
           }
         },
         prev_returning_users: {
@@ -337,11 +314,7 @@ export const getNewReturning: RequestHandler = async (req, res) => {
             }
           },
           aggs: {
-            unique_returning_users: {
-              cardinality: {
-                field: 'deviceId'
-              }
-            }
+            nested_device: uniqueDevicesAgg
           }
         }
       }
@@ -350,10 +323,10 @@ export const getNewReturning: RequestHandler = async (req, res) => {
     res.json({
       success: true,
       data: {
-        newUsers: response.aggregations?.new_users?.unique_new_users?.value || 0,
-        returningUsers: response.aggregations?.returning_users?.unique_returning_users?.value || 0,
-        prevNewUsers: response.aggregations?.prev_new_users?.unique_new_users?.value || 0,
-        prevReturningUsers: response.aggregations?.prev_returning_users?.unique_returning_users?.value || 0
+        newUsers: response.aggregations?.new_users?.nested_device?.unique_devices?.value || 0,
+        returningUsers: response.aggregations?.returning_users?.nested_device?.unique_devices?.value || 0,
+        prevNewUsers: response.aggregations?.prev_new_users?.nested_device?.unique_devices?.value || 0,
+        prevReturningUsers: response.aggregations?.prev_returning_users?.nested_device?.unique_devices?.value || 0
       }
     });
   } catch (error) {

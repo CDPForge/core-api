@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { esClient, getIndexPattern, buildBaseQuery } from '../utils/elasticHelper';
+import { esClient, getIndexPattern, buildBaseQuery, esMapping, buildGroupByQuery } from '../utils/elasticHelper';
 import { SearchResponse } from '@elastic/elasticsearch/lib/api/types';
 
 export const getTotalViews: RequestHandler = async (req, res) => {
@@ -31,14 +31,14 @@ export const getTotalViews: RequestHandler = async (req, res) => {
     const response: SearchResponse<any, any> = await esClient.search({
       index: getIndexPattern(clientId),
       body: {
-        query: buildBaseQuery({ clientId, from: prevFrom as string, to: prevTo as string, action: 'view' }),
+        query: buildBaseQuery({ clientId, from: prevFrom as string, to: to as string, event: 'view' }),
         size: 0
       },
       aggs: {
         current_views: {
           filter: {
             range: {
-              date: {
+              [esMapping.DATE]: {
                 gte: from,
                 lte: to
               }
@@ -47,7 +47,7 @@ export const getTotalViews: RequestHandler = async (req, res) => {
           aggs: {
             total_views: {
               value_count: {
-                field: 'date'
+                field: esMapping.DATE
               }
             }
           }
@@ -55,7 +55,7 @@ export const getTotalViews: RequestHandler = async (req, res) => {
         previous_views: {
           filter: {
             range: {
-              date: {
+              [esMapping.DATE]: {
                 gte: prevFrom,
                 lte: prevTo
               }
@@ -64,7 +64,7 @@ export const getTotalViews: RequestHandler = async (req, res) => {
           aggs: {
             total_views: {
               value_count: {
-                field: 'date'
+                field: esMapping.DATE
               }
             }
           }
@@ -102,22 +102,17 @@ export const createGetViewsByGroup = (field: string): RequestHandler => async (r
     const response: SearchResponse<any, any> = await esClient.search({
       index: getIndexPattern(clientId),
       body: {
-        query: buildBaseQuery({ clientId, from: from as string, to: to as string, action: 'view' }),
+        query: buildBaseQuery({ clientId, from: from as string, to: to as string, event: 'view' }),
         size: 0,
         aggs: {
-          group_by: {
-            terms: {
-              field: field,
-              size: 100
-            }
-          }
+          group_by: buildGroupByQuery(field)
         }
       }
     });
 
     res.json({
       success: true,
-      data: (response.aggregations?.group_by as { buckets: any[] })?.buckets?.map((bucket) => ({
+      data: (response.aggregations?.group_by?.inner_group_by ?? response.aggregations?.group_by)?.buckets?.map((bucket: any) => ({
         key: bucket.key,
         count: bucket.doc_count
       })) || []
@@ -145,12 +140,12 @@ export const getDailyViews: RequestHandler = async (req, res) => {
       const response: SearchResponse<any, any> = await esClient.search({
         index: getIndexPattern(clientId),
         body: {
-          query: buildBaseQuery({ clientId, from: from as string, to: to as string, action: 'view' }),
+          query: buildBaseQuery({ clientId, from: from as string, to: to as string, event: 'view' }),
           size: 0,
           aggs: {
             daily: {
               date_histogram: {
-                field: 'date',
+                field: esMapping.DATE,
                 calendar_interval: 'day',
                 format: 'yyyy-MM-dd'
               }

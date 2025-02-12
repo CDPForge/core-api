@@ -19,7 +19,7 @@ describe('Realtime Controller', () => {
 
       (esClient.search as jest.Mock).mockResolvedValueOnce({
         aggregations: {
-          unique_visitors: { value: 150 }
+          nested_device: { unique_visitors: { value: 150 } }
         }
       });
 
@@ -44,18 +44,18 @@ describe('Realtime Controller', () => {
             buckets: [
               {
                 key: 'mobile',
-                unique_visitors: { value: 80 }
+                nested_device: { unique_visitors: { value: 80 } }
               },
               {
                 key: 'desktop', 
-                unique_visitors: { value: 70 }
+                nested_device: { unique_visitors: { value: 70 } }
               }
             ]
           }
         }
       });
 
-      const handler = createGetVisitorsByGroup('device');
+      const handler = createGetVisitorsByGroup('device.type');
       await handler(req, res, jest.fn());
 
       expect(res.json).toHaveBeenCalledWith({
@@ -97,11 +97,11 @@ describe('Realtime Controller', () => {
             buckets: [
               {
                 key_as_string: '2024-03-07 10:00',
-                unique_visitors: { value: 50 }
+                nested_device: { unique_visitors: { value: 50 } }
               },
               {
                 key_as_string: '2024-03-07 10:10',
-                unique_visitors: { value: 60 }
+                nested_device: { unique_visitors: { value: 60 } }
               }
             ]
           }

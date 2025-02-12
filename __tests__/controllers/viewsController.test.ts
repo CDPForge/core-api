@@ -2,19 +2,14 @@ import { getMockReq, getMockRes } from '@jest-mock/express';
 import { getTotalViews, createGetViewsByGroup, getDailyViews } from '../../src/controllers/viewsController';
 import { esClient } from '../../src/utils/elasticHelper';
 
-jest.mock('../../src/utils/elasticHelper', () => ({
-  esClient: {
-    search: jest.fn()
-  },
-  getIndexPattern: (clientId: number) => `users-logs-${clientId}`,
-  buildBaseQuery: jest.fn()
-}));
+jest.mock('../../src/utils/elasticHelper');
 
 describe('Views Controller', () => {
   const { res, clearMockRes } = getMockRes();
   
   beforeEach(() => {
     clearMockRes();
+    (esClient.search as jest.Mock).mockClear();
   });
 
   describe('getTotalViews', () => {
@@ -75,7 +70,38 @@ describe('Views Controller', () => {
   });
 
   describe('getViewsByGroup', () => {
-    it('dovrebbe raggruppare le views per il campo specificato', async () => {
+    it('dovrebbe raggruppare le views per il campo specificato nested', async () => {
+      const req = getMockReq({
+        user: { currentClientId: 1 },
+        query: { from: '2024-03-01', to: '2024-03-07' }
+      });
+
+      (esClient.search as jest.Mock).mockResolvedValueOnce({
+        aggregations: {
+          group_by: {
+            inner_group_by: {
+              buckets: [
+                { key: 'chrome', doc_count: 500 },
+                { key: 'firefox', doc_count: 300 }
+              ]
+            }
+          }
+        }
+      });
+
+      const handler = createGetViewsByGroup('device.browser');
+      await handler(req, res, jest.fn());
+
+      expect(res.json).toHaveBeenCalledWith({
+        success: true,
+        data: [
+          { key: 'chrome', count: 500 },
+          { key: 'firefox', count: 300 }
+        ]
+      });
+    });
+
+    it('dovrebbe raggruppare le views per il campo specificato term', async () => {
       const req = getMockReq({
         user: { currentClientId: 1 },
         query: { from: '2024-03-01', to: '2024-03-07' }
@@ -85,21 +111,21 @@ describe('Views Controller', () => {
         aggregations: {
           group_by: {
             buckets: [
-              { key: 'chrome', doc_count: 500 },
-              { key: 'firefox', doc_count: 300 }
+              { key: 'https://www.google.com', doc_count: 100 },
+              { key: 'https://www.facebook.com', doc_count: 80 }
             ]
           }
         }
       });
 
-      const handler = createGetViewsByGroup('browser');
+      const handler = createGetViewsByGroup('referrer');
       await handler(req, res, jest.fn());
 
       expect(res.json).toHaveBeenCalledWith({
         success: true,
         data: [
-          { key: 'chrome', count: 500 },
-          { key: 'firefox', count: 300 }
+          { key: 'https://www.google.com', count: 100 },
+          { key: 'https://www.facebook.com', count: 80 }
         ]
       });
     });

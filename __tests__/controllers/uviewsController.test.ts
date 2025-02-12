@@ -22,10 +22,10 @@ describe('Unique Views Controller', () => {
       (esClient.search as jest.Mock).mockResolvedValueOnce({
         aggregations: {
           current_views: {
-            unique_devices: { value: 500 }
+            nested_device: { unique_devices: { value: 500 } }
           },
           previous_views: {
-            unique_devices: { value: 400 }
+            nested_device: { unique_devices: { value: 400 } }
           }
         }
       });
@@ -55,15 +55,15 @@ describe('Unique Views Controller', () => {
             buckets: [
               { 
                 key_as_string: '2024-03-01',
-                unique_devices: { value: 100 }
+                nested_device: { unique_devices: { value: 100 } }
               },
               { 
                 key_as_string: '2024-03-02', 
-                unique_devices: { value: 150 }
+                nested_device: { unique_devices: { value: 150 } }
               },
               { 
                 key_as_string: '2024-03-03',
-                unique_devices: { value: 200 }
+                nested_device: { unique_devices: { value: 200 } }
               }
             ]
           }
@@ -93,16 +93,16 @@ describe('Unique Views Controller', () => {
       (esClient.search as jest.Mock).mockResolvedValueOnce({
         aggregations: {
           new_users: {
-            unique_new_users: { value: 150 }
+            nested_device: { unique_devices: { value: 150 } }
           },
           returning_users: {
-            unique_returning_users: { value: 350 }
+            nested_device: { unique_devices: { value: 350 } }
           },
           prev_new_users: {
-            unique_new_users: { value: 200 }
+            nested_device: { unique_devices: { value: 200 } }
           },
           prev_returning_users: {
-            unique_returning_users: { value: 420 }
+            nested_device: { unique_devices: { value: 420 } }
           }
         }
       });
@@ -134,18 +134,18 @@ describe('Unique Views Controller', () => {
             buckets: [
               { 
                 key: 'mobile',
-                unique_devices: { value: 300 }
+                nested_device: { unique_devices: { value: 300 } }
               },
               { 
                 key: 'desktop',
-                unique_devices: { value: 200 }
+                nested_device: { unique_devices: { value: 200 } }
               }
             ]
           }
         }
       });
 
-      const handler = createGetUViewsByGroup('deviceType');
+      const handler = createGetUViewsByGroup('device.type');
       await handler(req, res, jest.fn());
 
       expect(res.json).toHaveBeenCalledWith({

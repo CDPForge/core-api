@@ -1,6 +1,19 @@
 import { RequestHandler } from 'express';
-import { esClient, getIndexPattern, buildBaseQuery } from '../utils/elasticHelper';
+import { esClient, getIndexPattern, buildBaseQuery, esMapping, buildGroupByQuery } from '../utils/elasticHelper';
 import { SearchResponse } from '@elastic/elasticsearch/lib/api/types';
+
+const visitorsAgg = {
+  nested: {
+    path: esMapping.DEVICE.PATH
+  },
+  aggs: {
+    unique_visitors: {
+      cardinality: {
+        field: esMapping.DEVICE.ID
+      }
+    }
+  }
+}
 
 export const getVisitors: RequestHandler = async (req, res) => {
   const clientId = req.user.currentClientId;
@@ -9,14 +22,10 @@ export const getVisitors: RequestHandler = async (req, res) => {
     const response: SearchResponse<any, any> = await esClient.search({
       index: getIndexPattern(clientId),
       body: {
-        query: buildBaseQuery({ clientId, action: 'view', from: 'now-15m', to: 'now' }),
+        query: buildBaseQuery({ clientId, event: 'view', from: 'now-15m', to: 'now' }),
         size: 0,
         aggs: {
-          unique_visitors: {
-            cardinality: {
-              field: 'deviceId'
-            }
-          }
+          nested_device: visitorsAgg
         }
       }
     });
@@ -24,7 +33,7 @@ export const getVisitors: RequestHandler = async (req, res) => {
     res.json({
       success: true,
       data: {
-        visitors: response.aggregations?.unique_visitors?.value || 0
+        visitors: response.aggregations?.nested_device?.unique_visitors?.value || 0
       }
     });
   } catch (error) {
@@ -42,7 +51,7 @@ export const getVisitorsLast3Hours: RequestHandler = async (req, res) => {
     const response: SearchResponse<any, any> = await esClient.search({
       index: getIndexPattern(clientId),
       body: {
-        query: buildBaseQuery({ clientId, action: 'view', from: 'now-3h', to: 'now' }),
+        query: buildBaseQuery({ clientId, event: 'view', from: 'now-3h', to: 'now' }),
         size: 0,
         aggs: {
             last10m: {
@@ -52,11 +61,7 @@ export const getVisitorsLast3Hours: RequestHandler = async (req, res) => {
                 format: 'yyyy-MM-dd HH:mm'
               },
               aggs: {
-                unique_visitors: {
-                  cardinality: {
-                    field: 'deviceId'
-                  }
-                }
+                nested_device: visitorsAgg
               }
             },
         }
@@ -68,7 +73,7 @@ export const getVisitorsLast3Hours: RequestHandler = async (req, res) => {
       data: {
         visitors: response.aggregations?.last10m?.buckets?.map((bucket: any) => ({
           date: bucket.key_as_string,
-          visitors: bucket.unique_visitors.value
+          visitors: bucket.nested_device?.unique_visitors?.value
         })) || []
       }
     });
@@ -90,7 +95,7 @@ export const createGetVisitorsByGroup = (field: string): RequestHandler => async
         query: {
           bool: {
             must: [
-              { term: { action: 'view' } },
+              { term: { event: 'view' } },
               {
                 range: {
                   date: {
@@ -103,28 +108,16 @@ export const createGetVisitorsByGroup = (field: string): RequestHandler => async
         },
         size: 0,
         aggs: {
-          group_by: {
-            terms: {
-              field: field,
-              size: 100
-            },
-            aggs: {
-              unique_visitors: {
-                cardinality: {
-                  field: 'deviceId'
-                }
-              }
-            }
-          }
+          group_by: buildGroupByQuery(field, visitorsAgg, "nested_device")
         }
       }
     });
 
     res.json({
       success: true,
-      data: (response.aggregations?.group_by as { buckets: any[] })?.buckets?.map((bucket) => ({
+      data:(response.aggregations?.group_by?.inner_group_by ?? response.aggregations?.group_by)?.buckets?.map((bucket: any) => ({
         key: bucket.key,
-        visitors: bucket.unique_visitors.value
+        visitors: bucket.nested_device?.unique_visitors?.value
       })) || []
     });
   } catch (error) {

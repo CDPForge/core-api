@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { esClient, getIndexPattern, buildBaseQuery } from '../utils/elasticHelper';
+import { esClient, getIndexPattern, buildBaseQuery, esMapping } from '../utils/elasticHelper';
 import { SearchResponse } from '@elastic/elasticsearch/lib/api/types';
 
 export const getTotalClicks: RequestHandler = async (req, res) => {
@@ -31,13 +31,13 @@ export const getTotalClicks: RequestHandler = async (req, res) => {
     const response: SearchResponse<any, any> = await esClient.search({
       index: getIndexPattern(clientId),
       body: {
-        query: buildBaseQuery({ clientId, from: prevFrom as string, to: prevTo as string, action: 'click' }),
+        query: buildBaseQuery({ clientId, from: prevFrom as string, to: prevTo as string, event: 'click' }),
         size: 0,
         aggs: {
           current_clicks: {
             filter: {
               range: {
-                date: {
+                [esMapping.DATE]: {
                   gte: from,
                   lte: to
                 }
@@ -46,7 +46,7 @@ export const getTotalClicks: RequestHandler = async (req, res) => {
             aggs: {
               total_clicks: {
                 value_count: {
-                  field: 'date'
+                  field: esMapping.DATE
                 }
               }
             }
@@ -54,7 +54,7 @@ export const getTotalClicks: RequestHandler = async (req, res) => {
           previous_clicks: {
             filter: {
               range: {
-                date: {
+                [esMapping.DATE]: {
                   gte: prevFrom,
                   lte: prevTo
                 }
@@ -63,7 +63,7 @@ export const getTotalClicks: RequestHandler = async (req, res) => {
             aggs: {
               total_clicks: {
                 value_count: {
-                  field: 'date'
+                  field: esMapping.DATE
                 }
               }
             }
@@ -103,12 +103,12 @@ export const getClicksByTarget: RequestHandler = async (req, res) => {
     const response: SearchResponse<any, any> = await esClient.search({
       index: getIndexPattern(clientId),
       body: {
-        query: buildBaseQuery({ clientId, from: from as string, to: to as string, action: 'click' }),
+        query: buildBaseQuery({ clientId, from: from as string, to: to as string, event: 'click' }),
         size: 0,
         aggs: {
           group_by: {
             terms: {
-              field: 'clickTarget',
+              field: esMapping.TARGET,
               size: 100
             }
           }
@@ -147,12 +147,12 @@ export const getDailyClicks: RequestHandler = async (req, res) => {
     const response: SearchResponse<any, any> = await esClient.search({
       index: getIndexPattern(clientId),
       body: {
-        query: buildBaseQuery({ clientId, from: from as string, to: to as string, action: 'click' }),
+        query: buildBaseQuery({ clientId, from: from as string, to: to as string, event: 'click' }),
         size: 0,
         aggs: {
           daily: {
             date_histogram: {
-              field: 'date',
+              field: esMapping.DATE,
               calendar_interval: 'day',
               format: 'yyyy-MM-dd'
             }
@@ -163,7 +163,7 @@ export const getDailyClicks: RequestHandler = async (req, res) => {
 
     res.json({
       success: true,
-      data: (response.aggregations?.daily as { buckets: any[] })?.buckets?.map((bucket) => ({
+      data: response.aggregations?.daily?.buckets?.map((bucket:any ) => ({
         date: bucket.key_as_string,
         count: bucket.doc_count
       })) || []

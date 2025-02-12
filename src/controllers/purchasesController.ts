@@ -1,6 +1,21 @@
 import { RequestHandler } from 'express';
-import { esClient, getIndexPattern, buildBaseQuery } from '../utils/elasticHelper';
-import { SearchResponse } from '@elastic/elasticsearch/lib/api/types';
+import { esClient, getIndexPattern, buildBaseQuery, esMapping, buildGroupByQuery } from '../utils/elasticHelper';
+import { AggregationsMultiTermsBucket, AggregationsNestedAggregate, AggregationsSimpleValueAggregate, AggregationsSumAggregate, SearchResponse } from '@elastic/elasticsearch/lib/api/types';
+
+const totalRevenueAgg = {
+  nested: {
+    path: esMapping.PRODUCT.PATH
+  },
+  aggs: {
+    total_revenue: {
+      sum: {
+        script: {
+          source: "doc['" + esMapping.PRODUCT.PRICE + "'].value * doc['" + esMapping.PRODUCT.QUANTITY + "'].value"
+        }
+      }
+    }
+  }
+}
 
 export const getTotalPurchases: RequestHandler = async (req, res) => {
   const { from, to } = req.query;
@@ -31,13 +46,13 @@ export const getTotalPurchases: RequestHandler = async (req, res) => {
     const response: SearchResponse<any, any> = await esClient.search({
       index: getIndexPattern(clientId),
       body: {
-        query: buildBaseQuery({ clientId, from: prevFrom as string, to: prevTo as string, action: 'purchase' }),
+        query: buildBaseQuery({ clientId, from: prevFrom as string, to: to as string, event: 'purchase' }),
         size: 0,
         aggs: {
           current_purchases: {
             filter: {
               range: {
-                date: {
+                [esMapping.DATE]: {
                   gte: from,
                   lte: to
                 }
@@ -46,22 +61,16 @@ export const getTotalPurchases: RequestHandler = async (req, res) => {
             aggs: {
               total_purchases: {
                 value_count: {
-                  field: 'date'
+                  field: esMapping.DATE
                 }
               },
-              totale_revenue: {
-                sum: {
-                  script: {
-                    source: "doc['productPrice'].value * doc['productQuantity'].value"
-                  }
-                }
-              }
+              nested_products: totalRevenueAgg
             }
           },
           previous_purchases: {
             filter: {
               range: {
-                date: {
+                [esMapping.DATE]: {
                   gte: prevFrom,
                   lte: prevTo
                 }
@@ -70,16 +79,10 @@ export const getTotalPurchases: RequestHandler = async (req, res) => {
             aggs: {
               total_purchases: {
                 value_count: {
-                  field: 'date'
+                  field: esMapping.DATE
                 }
               },
-              totale_revenue: {
-                sum: {
-                  script: {
-                    source: "doc['productPrice'].value * doc['productQuantity'].value"
-                  }
-                }
-              }
+              nested_products: totalRevenueAgg
             }
           }
         }
@@ -91,8 +94,8 @@ export const getTotalPurchases: RequestHandler = async (req, res) => {
       data: {
         current_purchases: response.aggregations?.current_purchases?.total_purchases?.value || 0,
         previous_purchases: response.aggregations?.previous_purchases?.total_purchases?.value || 0,
-        current_revenue: response.aggregations?.current_purchases?.totale_revenue?.value || 0,
-        previous_revenue: response.aggregations?.previous_purchases?.totale_revenue?.value || 0
+        current_revenue: response.aggregations?.current_purchases?.nested_products?.total_revenue?.value || 0,
+        previous_revenue: response.aggregations?.previous_purchases?.nested_products?.total_revenue?.value || 0
       }
     });
   } catch (error) {
@@ -119,35 +122,24 @@ export const createGetPurchasesByGroup = (field: string): RequestHandler => asyn
     const response: SearchResponse<any, any> = await esClient.search({
       index: getIndexPattern(clientId),
       body: {
-        query: buildBaseQuery({ clientId, from: from as string, to: to as string, action: 'purchase' }),
+        query: buildBaseQuery({ clientId, from: from as string, to: to as string, event: 'purchase' }),
         size: 0,
         aggs: {
-          group_by: {
-            terms: {
-              field: field,
-              size: 100
-            },
-            aggs: {
-              totale_revenue: {
-                sum: {
-                  script: {
-                    source: "doc['productPrice'].value * doc['productQuantity'].value"
-                  }
-                }
-              }
-            }
-          }
+          group_by: buildGroupByQuery(field, totalRevenueAgg, "nested_products")
         }
       }
     });
 
+    let data = (response.aggregations?.group_by?.inner_group_by ?? response.aggregations?.group_by)?.buckets?.map((bucket: any) => ({
+      key: bucket.key,
+      count: bucket.doc_count,
+      revenue: bucket.nested_products?.total_revenue?.value || 0
+    })) || [];
+    
+
     res.json({
       success: true,
-      data: (response.aggregations?.group_by as { buckets: any[] })?.buckets?.map((bucket) => ({
-        key: bucket.key,
-        count: bucket.doc_count,
-        revenue: bucket.totale_revenue?.value || 0
-      })) || []
+      data: data
     });
   } catch (error) {
     res.status(500).json({
@@ -173,23 +165,17 @@ export const getDailyPurchases: RequestHandler = async (req, res) => {
     const response: SearchResponse<any, any> = await esClient.search({
       index: getIndexPattern(clientId),
       body: {
-        query: buildBaseQuery({ clientId, from: from as string, to: to as string, action: 'purchase' }),
+        query: buildBaseQuery({ clientId, from: from as string, to: to as string, event: 'purchase' }),
         size: 0,
         aggs: {
           daily: {
             date_histogram: {
-              field: 'date',
+              field: esMapping.DATE,
               calendar_interval: 'day',
               format: 'yyyy-MM-dd'
             },
             aggs: {
-              totale_revenue: {
-                sum: {
-                  script: {
-                    source: "doc['productPrice'].value * doc['productQuantity'].value"
-                  }
-                }
-              }
+              nested_products: totalRevenueAgg
             }
           }
         }
@@ -201,7 +187,7 @@ export const getDailyPurchases: RequestHandler = async (req, res) => {
       data: (response.aggregations?.daily as { buckets: any[] })?.buckets?.map((bucket) => ({
         date: bucket.key_as_string,
         count: bucket.doc_count,
-        revenue: bucket.totale_revenue?.value || 0
+        revenue: bucket.nested_products?.total_revenue?.value || 0
       })) || []
     });
   } catch (error) {
