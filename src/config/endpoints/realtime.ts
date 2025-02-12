@@ -1,4 +1,3 @@
-import { RequestHandler } from 'express';
 import { EndpointConfig } from './endpoints';
 import { createGetVisitorsByGroup, getVisitors, getVisitorsLast3Hours} from '../../controllers/realtimeController';
 const endpoints: Record<string, EndpointConfig> = {
@@ -17,19 +16,19 @@ const endpoints: Record<string, EndpointConfig> = {
     'realtime-visitors-by-country': {
         path: '/api/analytics/realtime/visitors/groupby/country',
         method: 'get',
-        handler: createGetVisitorsByGroup('country'),
+        handler: createGetVisitorsByGroup('geo.country'),
         supportsBulk: false
     },
     'realtime-visitors-by-page': {
         path: '/api/analytics/realtime/visitors/groupby/page',
         method: 'get',
-        handler: createGetVisitorsByGroup('pageTitle'),
+        handler: createGetVisitorsByGroup('page.title'),
         supportsBulk: false
     },
     'realtime-visitors-by-browser': {
         path: '/api/analytics/realtime/visitors/groupby/browser',
         method: 'get',
-        handler: createGetVisitorsByGroup('browser'),
+        handler: createGetVisitorsByGroup('device.browser'),
         supportsBulk: false
     }
 };

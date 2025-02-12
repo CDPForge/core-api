@@ -2,7 +2,7 @@ import { RequestHandler } from 'express';
 import { EndpointConfig } from './endpoints';
 
 const endpoints: Record<string, EndpointConfig> = {
-    'interests-totale': {
+    'interests-total': {
         path: '/api/analytics/interests/total',
         method: 'get',
         handler: ()=>{},

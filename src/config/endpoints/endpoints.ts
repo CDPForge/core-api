@@ -4,7 +4,7 @@ import uviews from './uviews';
 import clicks from './clicks';
 import topics from './topics';
 import purchases from './purchases';
-
+import realtime from './realtime';
 
 export interface EndpointConfig {
   path: string;
@@ -13,7 +13,7 @@ export interface EndpointConfig {
   supportsBulk: boolean;
 }
 
-export const endpoints: Record<string, EndpointConfig> = Object.assign(views, uviews, clicks, topics, purchases);
+export const endpoints: Record<string, EndpointConfig> = Object.assign(views, uviews, clicks, topics, purchases, realtime);
 
 // Helper per il bulk controller
 export const bulkEndpointMap = Object.entries(endpoints)

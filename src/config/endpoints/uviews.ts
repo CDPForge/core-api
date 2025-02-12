@@ -3,7 +3,7 @@ import { EndpointConfig } from './endpoints';
 import { getTotalUViews, createGetUViewsByGroup, getDailyUViews, getNewReturning } from '../../controllers/uviewsController';
 
 const endpoints: Record<string, EndpointConfig> = {
-    'uviews-totale': {
+    'uviews-total': {
         path: '/api/analytics/uviews/total',
         method: 'get',
         handler: getTotalUViews,
