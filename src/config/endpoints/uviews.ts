@@ -12,13 +12,19 @@ const endpoints: Record<string, EndpointConfig> = {
     'uviews-groupby-device': {
         path: '/api/analytics/uviews/groupby/device',
         method: 'get',
-        handler: createGetUViewsByGroup('device'),
+        handler: createGetUViewsByGroup('device.type'),
         supportsBulk: true
     },
     'uviews-groupby-browser': {
         path: '/api/analytics/uviews/groupby/browser',
         method: 'get',
-        handler: createGetUViewsByGroup('browser'),
+        handler: createGetUViewsByGroup('device.browser'),
+        supportsBulk: true
+    },
+    'uviews-groupby-os': {
+        path: '/api/analytics/uviews/groupby/os',
+        method: 'get',
+        handler: createGetUViewsByGroup('device.os'),
         supportsBulk: true
     },
     'uviews-groupby-referrer': {
@@ -30,7 +36,13 @@ const endpoints: Record<string, EndpointConfig> = {
     'uviews-groupby-city': {
         path: '/api/analytics/uviews/groupby/city',
         method: 'get',
-        handler: createGetUViewsByGroup('city'),
+        handler: createGetUViewsByGroup('geo.city'),
+        supportsBulk: true
+    },
+    'uviews-groupby-country': {
+        path: '/api/analytics/uviews/groupby/country',
+        method: 'get',
+        handler: createGetUViewsByGroup('geo.country'),
         supportsBulk: true
     },
     'uviews-daily': {

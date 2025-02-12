@@ -111,11 +111,11 @@ export const createGetUViewsByGroup = (field: string): RequestHandler => async (
         query: buildBaseQuery({ clientId, from: from as string, to: to as string, event: 'view' }),
         size: 0,
         aggs: {
-          group_by: buildGroupByQuery(field, uniqueDevicesAgg, "unique_devices")
+          group_by: buildGroupByQuery(field, uniqueDevicesAgg, "nested_device")
         }
       }
     });
-
+ 
     res.json({
       success: true,
       data: (response.aggregations?.group_by?.inner_group_by ?? response.aggregations?.group_by)?.buckets?.map((bucket: any) => ({
@@ -124,6 +124,7 @@ export const createGetUViewsByGroup = (field: string): RequestHandler => async (
       })) || []
     });
   } catch (error) {
+    console.error('Errore nel recupero delle statistiche:', error);
     res.status(500).json({
       success: false,
       message: 'Errore nel recupero delle statistiche'
@@ -205,9 +206,9 @@ export const getNewReturning: RequestHandler = async (req, res) => {
 
   try {
     const response: SearchResponse<any, any> = await esClient.search({
-      index: `users-logs-${clientId}`,
+      index: getIndexPattern(clientId),
       size: 0,
-      query: buildBaseQuery({ clientId, event: 'view' }),
+      query: buildBaseQuery({ clientId, from: prevFrom as string, to: to as string, event: 'view' }),
       aggs: {
         new_users: {
           filter: {
@@ -215,7 +216,7 @@ export const getNewReturning: RequestHandler = async (req, res) => {
               must: [
                 {
                   range: {
-                    date: {
+                    [esMapping.DATE]: {
                       gte: from,
                       lte: to
                     }
@@ -225,7 +226,7 @@ export const getNewReturning: RequestHandler = async (req, res) => {
               must_not: [
                 {
                   range: {
-                    date: {
+                    [esMapping.DATE]: {
                       lt: from
                     }
                   }
@@ -243,7 +244,7 @@ export const getNewReturning: RequestHandler = async (req, res) => {
               must: [
                 {
                   range: {
-                    date: {
+                    [esMapping.DATE]: {
                       gte: from,
                       lte: to
                     }
@@ -251,7 +252,7 @@ export const getNewReturning: RequestHandler = async (req, res) => {
                 },
                 {
                   range: {
-                    date: {
+                    [esMapping.DATE]: {
                       lt: from
                     }
                   }
@@ -269,7 +270,7 @@ export const getNewReturning: RequestHandler = async (req, res) => {
               must: [
                 {
                   range: {
-                    date: {
+                    [esMapping.DATE]: {
                       gte: prevFrom,
                       lte: prevTo
                     }
@@ -279,7 +280,7 @@ export const getNewReturning: RequestHandler = async (req, res) => {
               must_not: [
                 {
                   range: {
-                    date: {
+                    [esMapping.DATE]: {
                       lt: prevFrom
                     }
                   }
@@ -297,7 +298,7 @@ export const getNewReturning: RequestHandler = async (req, res) => {
               must: [
                 {
                   range: {
-                    date: {
+                    [esMapping.DATE]: {
                       gte: prevFrom,
                       lte: prevTo
                     }
@@ -305,7 +306,7 @@ export const getNewReturning: RequestHandler = async (req, res) => {
                 },
                 {
                   range: {
-                    date: {
+                    [esMapping.DATE]: {
                       lt: prevFrom
                     }
                   }
@@ -319,6 +320,122 @@ export const getNewReturning: RequestHandler = async (req, res) => {
         }
       }
     });
+
+    console.log(JSON.stringify({
+      index: getIndexPattern(clientId),
+      size: 0,
+      query: buildBaseQuery({ clientId, from: prevFrom as string, to: to as string, event: 'view' }),
+      aggs: {
+        new_users: {
+          filter: {
+            bool: {
+              must: [
+                {
+                  range: {
+                    [esMapping.DATE]: {
+                      gte: from,
+                      lte: to
+                    }
+                  }
+                }
+              ],
+              must_not: [
+                {
+                  range: {
+                    [esMapping.DATE]: {
+                      lt: from
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          aggs: {
+            nested_device: uniqueDevicesAgg
+          }
+        },
+        returning_users: {
+          filter: {
+            bool: {
+              must: [
+                {
+                  range: {
+                    [esMapping.DATE]: {
+                      gte: from,
+                      lte: to
+                    }
+                  }
+                },
+                {
+                  range: {
+                    [esMapping.DATE]: {
+                      lt: from
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          aggs: {
+            nested_device: uniqueDevicesAgg
+          }
+        },
+        prev_new_users: {
+          filter: {
+            bool: {
+              must: [
+                {
+                  range: {
+                    [esMapping.DATE]: {
+                      gte: prevFrom,
+                      lte: prevTo
+                    }
+                  }
+                }
+              ],
+              must_not: [
+                {
+                  range: {
+                    [esMapping.DATE]: {
+                      lt: prevFrom
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          aggs: {
+            nested_device: uniqueDevicesAgg
+          }
+        },
+        prev_returning_users: {
+          filter: {
+            bool: {
+              must: [
+                {
+                  range: {
+                    [esMapping.DATE]: {
+                      gte: prevFrom,
+                      lte: prevTo
+                    }
+                  }
+                },
+                {
+                  range: {
+                    [esMapping.DATE]: {
+                      lt: prevFrom
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          aggs: {
+            nested_device: uniqueDevicesAgg
+          }
+        }
+      }
+    }));
 
     res.json({
       success: true,

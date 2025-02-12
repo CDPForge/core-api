@@ -5,8 +5,8 @@ const router = Router();
 
 // Registra automaticamente tutti gli endpoint relativi agli users
 Object.entries(endpoints).forEach(([_, config]) => {
-  if (config.path.startsWith('/api/users')) {
-    const localPath = config.path.replace('/api/users', '');
+  if (config.path.startsWith('/api/analytics')) {
+    const localPath = config.path.replace('/api/analytics', '');
     router[config.method](localPath, config.handler);
   }
 });

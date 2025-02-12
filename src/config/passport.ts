@@ -7,10 +7,10 @@ import Client from '../models/client';
 import Roles from '../models/roles';
 
 passport.use(new LocalStrategy(
-  async (username: string, password: string, done) => {
+  async (mail: string, password: string, done) => {
     try {
       const user = await UserPanel.findOne({ 
-        where: { username },
+        where: { mail },
         include: [{
           model: UserClientRoles,
           include: [

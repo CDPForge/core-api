@@ -1,0 +1,14 @@
+kafkaConfig:
+  brokers:
+  -  'localhost:9092'
+  topic: 
+    LOGS: 'logs'
+    LOGS_TRANSFORMED: 'user-logs'
+  
+mysqlConfig:
+  uri: mysql://root:password@localhost:44117/main
+
+esConfig:
+  url: "http://localhost:35355"
+  username: "elastic"
+  password: "0P84036dNJb7kd2Ez0So1UmE"

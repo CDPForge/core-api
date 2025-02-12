@@ -1,8 +1,13 @@
 import { Client } from '@elastic/elasticsearch';
-import { AggregationsAggregationContainer, AggregationsExtendedStatsAggregate, QueryDslQueryContainer } from '@elastic/elasticsearch/lib/api/types';
+import { AggregationsAggregationContainer, QueryDslQueryContainer } from '@elastic/elasticsearch/lib/api/types';
+import Config from '../config';
 
 export const esClient = new Client({
-  node: process.env.ELASTICSEARCH_URL || 'http://localhost:9200'
+  node: Config.getInstance().config.esConfig.url,
+  auth: {
+    username: Config.getInstance().config.esConfig.username,
+    password: Config.getInstance().config.esConfig.password
+  }
 });
 
 export const getIndexPattern = (clientId: number) => `users-logs-${clientId}`;
@@ -80,6 +85,29 @@ export const buildGroupByQuery = (field: string, subAggs: AggregationsAggregatio
   const isNested: boolean = field.includes(".");
   let gbAggs: AggregationsAggregationContainer = {};
   if (isNested) {
+
+    /*
+    {
+      nested: {
+        path: esMapping.DEVICE.PATH
+      },
+      aggs: {
+        unique_devices: {
+          cardinality: {
+            field: esMapping.DEVICE.ID
+          }
+        }
+      }
+    }*/
+    if(subAggs?.nested?.path === field.split(".")[0]) {
+      delete subAggs.nested;
+      subAggs.filter = {
+        exists: {
+          field: field
+        }
+      }
+    }
+
     gbAggs = {
       nested: {
         path: field.split(".")[0]

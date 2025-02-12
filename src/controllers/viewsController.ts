@@ -80,6 +80,7 @@ export const getTotalViews: RequestHandler = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Errore nel recupero delle statistiche:', error);
     res.status(500).json({
       success: false,
       message: 'Errore nel recupero delle statistiche'
