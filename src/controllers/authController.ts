@@ -27,54 +27,49 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
     }
 
     if (!user) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Username o password non validi' 
+      return res.status(401).json({
+        success: false,
+        message: 'Username o password non validi'
       });
     }
 
-    req.logIn(user, (err) => {
-      if (err) {
-        return next(err);
-      }
+    const userData = {
+      id: user.id,
+      username: user.mail,
+      name: user.name,
+      surname: user.surname,
+      clients: user.UserClientRoles?.map(ucr => ({
+        client: ucr.clientRelation.id,
+        clientName: ucr.clientRelation.name,
+        role: ucr.roleRelation.name
+      }))
+    };
 
-      const userData = {
-        id: user.id,
-        username: user.mail,
-        name: user.name,
-        surname: user.surname,
-        clients: user.UserClientRoles?.map(ucr => ({
-          client: ucr.clientRelation.id,
-          clientName: ucr.clientRelation.name,
-          role: ucr.roleRelation.name
-        }))
-      };
+    const { accessToken, refreshToken } = generateTokens(userData);
 
-      const { accessToken, refreshToken } = generateTokens(userData);
-
-      // Impostiamo i cookie
-      res.cookie('accessToken', accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        domain: process.env.COOKIE_DOMAIN || 'dominio.com', // Imposta il dominio principale
-        maxAge: 6 * 60 * 60 * 1000 // 6 ore in millisecondi
-      });
-
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        domain: process.env.COOKIE_DOMAIN || 'dominio.com', // Imposta il dominio principale
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 giorni in millisecondi
-      });
-
-      return res.status(200).json({
-        success: true,
-        message: 'Login effettuato con successo',
-        accessToken,
-        refreshToken,
-        user: userData
-      });
+    // Impostiamo i cookie
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      domain: process.env.COOKIE_DOMAIN || 'dominio.com', // Imposta il dominio principale
+      maxAge: 6 * 60 * 60 * 1000 // 6 ore in millisecondi
     });
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      domain: process.env.COOKIE_DOMAIN || 'dominio.com', // Imposta il dominio principale
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 giorni in millisecondi
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Login effettuato con successo',
+      accessToken,
+      refreshToken,
+      user: userData
+    });
+
   })(req, res, next);
 };
 
