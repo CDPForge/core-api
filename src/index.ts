@@ -4,7 +4,6 @@ import { Sequelize } from 'sequelize-typescript';
 import './config/passport';
 import passport from 'passport';
 import express from 'express';
-import session from 'express-session';
 import authRoutes from './routes/auth';
 import cookieParser from 'cookie-parser';
 import { authenticateToken } from './middleware/authMiddleware';
