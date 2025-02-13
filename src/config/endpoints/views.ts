@@ -1,4 +1,3 @@
-import { RequestHandler } from 'express';
 import { EndpointConfig } from './endpoints';
 import { getTotalViews, createGetViewsByGroup, getDailyViews } from '../../controllers/viewsController';
 

@@ -31,7 +31,7 @@ export const getTotalClicks: RequestHandler = async (req, res) => {
     const response: SearchResponse<any, any> = await esClient.search({
       index: getIndexPattern(clientId),
       body: {
-        query: buildBaseQuery({ clientId, from: prevFrom as string, to: prevTo as string, event: 'click' }),
+        query: buildBaseQuery({ clientId, from: prevFrom as string, to: to as string, event: 'click' }),
         size: 0,
         aggs: {
           current_clicks: {
@@ -71,7 +71,7 @@ export const getTotalClicks: RequestHandler = async (req, res) => {
         }
       }
     });
-
+    
     res.json({
       success: true,
       data: {

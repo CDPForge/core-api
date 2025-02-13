@@ -1,4 +1,3 @@
-import { RequestHandler } from 'express';
 import { EndpointConfig } from './endpoints';
 
 const endpoints: Record<string, EndpointConfig> = {

@@ -1,4 +1,3 @@
-import { RequestHandler } from 'express';
 import { EndpointConfig } from './endpoints';
 import { getTotalClicks, getClicksByTarget, getDailyClicks } from '../../controllers/clicksController';
 const endpoints: Record<string, EndpointConfig> = {
