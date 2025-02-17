@@ -8,11 +8,13 @@ import authRoutes from './routes/auth';
 import cookieParser from 'cookie-parser';
 import { authenticateToken } from './middleware/authMiddleware';
 import apiRoutes from './routes/api';
-
+import cors from 'cors';
+import { ping } from './controllers/ping';
 const app = express();
 new Sequelize(Config.getInstance().config.mysqlConfig.uri, { models: [path.join(__dirname, './models')] });
 
 // Middleware di base
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -23,6 +25,7 @@ app.use(passport.initialize());
 
 
 // Routes
+app.use('/ping', ping);
 app.use('/auth', authRoutes);
 app.use('/api', authenticateToken, apiRoutes);
 

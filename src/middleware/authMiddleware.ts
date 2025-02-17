@@ -1,5 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import fs from 'fs';
+import path from 'path';
+
+const pubKey = fs.readFileSync(path.join(__dirname, '../../config/public.pem'), "utf8");
 
 export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
   const token = req.cookies.accessToken || req.headers['authorization']?.split(' ')[1];
@@ -24,7 +28,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
   try {
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET || 'your-secret-key'
+      pubKey
     ) as any;
 
     // Verifica l'accesso al client dalle informazioni nel token

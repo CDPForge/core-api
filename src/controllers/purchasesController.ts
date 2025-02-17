@@ -1,7 +1,9 @@
 import { RequestHandler } from 'express';
 import { esClient, getIndexPattern, buildBaseQuery, esMapping, buildGroupByQuery } from '../utils/elasticHelper';
-import { AggregationsMultiTermsBucket, AggregationsNestedAggregate, AggregationsSimpleValueAggregate, AggregationsSumAggregate, SearchResponse } from '@elastic/elasticsearch/lib/api/types';
+import { SearchResponse } from '@elastic/elasticsearch/lib/api/types';
 
+
+//TODO: Aggiungere l'info sull'orderid se presente
 const totalRevenueAgg = {
   nested: {
     path: esMapping.PRODUCT.PATH

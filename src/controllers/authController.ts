@@ -2,17 +2,22 @@ import passport from 'passport';
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 import UserPanel from '../models/userpanel';
 import jwt from 'jsonwebtoken';
+import fs from 'fs';
+import path from 'path';
+
+// Carica la chiave privata
+const privateKey = fs.readFileSync(path.join(__dirname, '../../config/private.pem'), 'utf8');
 
 const generateTokens = (userData: any) => {
   const accessToken = jwt.sign(
     userData,
-    process.env.JWT_SECRET || 'your-secret-key',
-    { expiresIn: '6h' }
+    privateKey,
+    { expiresIn: '6h',  algorithm: "RS256" }
   );
 
   const refreshToken = jwt.sign(
     { id: userData.id },
-    process.env.REFRESH_TOKEN_SECRET || 'your-refresh-secret-key',
+    privateKey,
     { expiresIn: '7d' }
   );
 
