@@ -13,8 +13,15 @@ import { ping } from './controllers/ping';
 const app = express();
 new Sequelize(Config.getInstance().config.mysqlConfig.uri, { models: [path.join(__dirname, './models')] });
 
-// Middleware di base
-app.use(cors());
+app.use(cors({
+  origin: "*", // Cambia con il dominio del frontend
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Metodi permessi
+  allowedHeaders: ["Content-Type", "Authorization"], // Header consentiti
+  credentials: true // Se il frontend invia cookie o autenticazione
+}));
+
+// Abilita la gestione della richiesta preflight
+app.options("*", cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
