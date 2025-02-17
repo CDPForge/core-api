@@ -18,7 +18,7 @@ const generateTokens = (userData: any) => {
   const refreshToken = jwt.sign(
     { id: userData.id },
     privateKey,
-    { expiresIn: '7d' }
+    { expiresIn: '7d',  algorithm: "RS256"  }
   );
 
   return { accessToken, refreshToken };
