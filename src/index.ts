@@ -16,7 +16,7 @@ new Sequelize(Config.getInstance().config.mysqlConfig.uri, { models: [path.join(
 app.use(cors({
   origin: "*", // Cambia con il dominio del frontend
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Metodi permessi
-  allowedHeaders: ["Content-Type", "Authorization"], // Header consentiti
+  allowedHeaders: ["Content-Type", "Authorization", "x-client-id"], // Header consentiti
   credentials: true // Se il frontend invia cookie o autenticazione
 }));
 
