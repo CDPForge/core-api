@@ -15,7 +15,7 @@ export interface EndpointConfig {
 
 export const endpoints: Record<string, EndpointConfig> = Object.assign(views, uviews, clicks, topics, purchases, realtime);
 
-// Helper per il bulk controller
+
 export const bulkEndpointMap = Object.entries(endpoints)
   .filter(([_, config]) => config.supportsBulk)
   .reduce((acc, [_, config]) => ({

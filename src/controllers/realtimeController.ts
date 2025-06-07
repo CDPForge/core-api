@@ -58,7 +58,12 @@ export const getVisitorsLast3Hours: RequestHandler = async (req, res) => {
               date_histogram: {
                 field: 'date',
                 fixed_interval: '10m',
-                format: 'yyyy-MM-dd HH:mm'
+                format: 'yyyy-MM-dd HH:mm',
+                min_doc_count: 0,
+                extended_bounds: {
+                  min: "now-3h",
+                  max: "now"
+                }
               },
               aggs: {
                 nested_device: visitorsAgg

@@ -3,7 +3,7 @@ import Client from './client';
 
 @Table({
     tableName: 'instances',
-    timestamps: false, // Se non vuoi i campi `createdAt` e `updatedAt` nel DB
+    timestamps: false,
 })
 export default class Instance extends Model {
     @Column({

@@ -31,7 +31,6 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
       pubKey
     ) as any;
 
-    // Verifica l'accesso al client dalle informazioni nel token
     const clientAccess = decoded.clients?.find(
       (c: any) => c.client === parseInt(clientId as string)
     );

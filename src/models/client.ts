@@ -2,7 +2,7 @@ import { Column, DataType, Model, Table } from 'sequelize-typescript';
 
 @Table({
     tableName: 'clients',
-    timestamps: false, // Se non vuoi i campi createdAt/updatedAt
+    timestamps: false,
 })
 export default class Client extends Model {
     @Column({

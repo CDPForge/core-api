@@ -3,7 +3,7 @@ import { esClient, getIndexPattern, buildBaseQuery, esMapping, buildGroupByQuery
 import { SearchResponse } from '@elastic/elasticsearch/lib/api/types';
 
 
-//TODO: Aggiungere l'info sull'orderid se presente
+//TODO: Adding info about orderid if present
 const totalRevenueAgg = {
   nested: {
     path: esMapping.PRODUCT.PATH
@@ -31,7 +31,6 @@ export const getTotalPurchases: RequestHandler = async (req, res) => {
     return;
   }
 
-  // Calcola il periodo corrente e precedente
   const fromDate = new Date(from as string);
   const toDate = new Date(to as string);
   const diffDays = Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));

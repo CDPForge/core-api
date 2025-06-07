@@ -5,7 +5,6 @@ import jwt from 'jsonwebtoken';
 import fs from 'fs';
 import path from 'path';
 
-// Carica la chiave privata
 const privateKey = fs.readFileSync(path.join(__dirname, '../../config/private.pem'), 'utf8');
 
 const generateTokens = (userData: any) => {
@@ -24,7 +23,6 @@ const generateTokens = (userData: any) => {
   return { accessToken, refreshToken };
 };
 
-// Funzione per gestire il login
 export const login = (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate('local', (err: Error, user: UserPanel, info: any) => {
     if (err) {
@@ -52,19 +50,18 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
 
     const { accessToken, refreshToken } = generateTokens(userData);
 
-    // Impostiamo i cookie
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      domain: process.env.COOKIE_DOMAIN || 'dominio.com', // Imposta il dominio principale
-      maxAge: 6 * 60 * 60 * 1000 // 6 ore in millisecondi
+      domain: process.env.COOKIE_DOMAIN || 'dominio.com',
+      maxAge: 6 * 60 * 60 * 1000
     });
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      domain: process.env.COOKIE_DOMAIN || 'dominio.com', // Imposta il dominio principale
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 giorni in millisecondi
+      domain: process.env.COOKIE_DOMAIN || 'dominio.com',
+      maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
     return res.status(200).json({
@@ -125,19 +122,18 @@ export const refreshToken: RequestHandler = async (req: Request, res: Response) 
 
     const { accessToken, refreshToken: newRefreshToken } = generateTokens(userData);
 
-    // Impostiamo i cookie
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      domain: process.env.COOKIE_DOMAIN || 'dominio.com', // Imposta il dominio principale
-      maxAge: 6 * 60 * 60 * 1000 // 6 ore in millisecondi
+      domain: process.env.COOKIE_DOMAIN || 'dominio.com',
+      maxAge: 6 * 60 * 60 * 1000
     });
 
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      domain: process.env.COOKIE_DOMAIN || 'dominio.com', // Imposta il dominio principale
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 giorni in millisecondi
+      domain: process.env.COOKIE_DOMAIN || 'dominio.com',
+      maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
     res.json({

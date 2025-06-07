@@ -1,6 +1,7 @@
 import { Client } from '@elastic/elasticsearch';
 import { AggregationsAggregationContainer, QueryDslQueryContainer } from '@elastic/elasticsearch/lib/api/types';
 import Config from '../config';
+import { on } from 'events';
 
 export const esClient = new Client({
   node: Config.getInstance().config.esConfig.url,
@@ -84,6 +85,7 @@ export const esMapping = {
 export const buildGroupByQuery = (field: string, subAggs: AggregationsAggregationContainer | undefined = undefined, subAggName: string | undefined = undefined): AggregationsAggregationContainer => {
   const isNested: boolean = field.includes(".");
   let gbAggs: AggregationsAggregationContainer = {};
+  if(subAggs != null) subAggs = JSON.parse(JSON.stringify(subAggs));
   if (isNested) {
 
     /*

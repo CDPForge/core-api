@@ -14,7 +14,6 @@ export const getTotalClicks: RequestHandler = async (req, res) => {
     return;
   }
 
-  // Calcola il periodo corrente e precedente
   const fromDate = new Date(from as string);
   const toDate = new Date(to as string);
   const diffDays = Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));

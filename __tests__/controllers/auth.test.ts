@@ -6,10 +6,8 @@ import session from 'express-session';
 import authRoutes from '../../src/routes/auth';
 import bcrypt from 'bcrypt';
 
-// Mock sequelize-typescript prima di importare i modelli
 jest.mock('sequelize-typescript');
 
-// Ora importiamo i modelli e la configurazione passport
 import UserPanel from '../../src/models/userpanel';
 import '../../src/config/passport';
 
@@ -27,7 +25,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use('/auth', authRoutes);
 
-// Mock di UserPanel
+// Mock UserPanel
 jest.mock('../../src/models/userpanel', () => ({
   findOne: jest.fn(),
   findByPk: jest.fn()
@@ -41,7 +39,7 @@ describe('Auth API', () => {
   });
 
   beforeEach(() => {
-    // Mock per il login
+    // Mock login
     (UserPanel.findOne as jest.Mock).mockResolvedValue({
       id: 1,
       mail: 'test@example.com',
@@ -59,7 +57,7 @@ describe('Auth API', () => {
       }]
     });
 
-    // Mock per il refresh token
+    // Mock refresh token
     (UserPanel.findByPk as jest.Mock).mockResolvedValue({
       id: 1,
       mail: 'test@example.com',
@@ -123,7 +121,7 @@ describe('Auth API', () => {
 
   describe('POST /auth/refresh', () => {
      xit('dovrebbe rinnovare i token con refresh token valido', async () => {
-      // Prima facciamo il login per ottenere un refresh token valido
+
       const loginRes = await request(app)
         .post('/auth/login')
         .send({

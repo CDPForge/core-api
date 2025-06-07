@@ -30,6 +30,12 @@ const endpoints: Record<string, EndpointConfig> = {
         method: 'get',
         handler: createGetVisitorsByGroup('device.browser'),
         supportsBulk: false
+    },
+    'realtime-visitors-by-device': {
+        path: '/api/analytics/realtime/visitors/groupby/device',
+        method: 'get',
+        handler: createGetVisitorsByGroup('device.type'),
+        supportsBulk: false
     }
 };
 

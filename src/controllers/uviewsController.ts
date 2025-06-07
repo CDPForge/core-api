@@ -27,7 +27,6 @@ export const getTotalUViews: RequestHandler = async (req, res) => {
     return;
   }
 
-  // Calcola il periodo corrente e precedente
   const fromDate = from ? new Date(from as string) : new Date();
   const toDate = to ? new Date(to as string) : new Date();
   const diffDays = Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -191,7 +190,6 @@ export const getNewReturning: RequestHandler = async (req, res) => {
     return;
   }
 
-  // Calcola il periodo corrente e precedente
   const fromDate = from ? new Date(from as string) : new Date();
   const toDate = to ? new Date(to as string) : new Date();
   const diffDays = Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));

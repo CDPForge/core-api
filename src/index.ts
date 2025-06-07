@@ -14,29 +14,25 @@ const app = express();
 new Sequelize(Config.getInstance().config.mysqlConfig.uri, { models: [path.join(__dirname, './models')] });
 
 app.use(cors({
-  origin: "*", // Cambia con il dominio del frontend
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Metodi permessi
-  allowedHeaders: ["Content-Type", "Authorization", "x-client-id"], // Header consentiti
-  credentials: true // Se il frontend invia cookie o autenticazione
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-client-id"],
+  credentials: true
 }));
 
-// Abilita la gestione della richiesta preflight
 app.options("*", cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Inizializzazione Passport
 app.use(passport.initialize());
 
 
-// Routes
 app.use('/ping', ping);
 app.use('/auth', authRoutes);
 app.use('/api', authenticateToken, apiRoutes);
 
-// Avvio del server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server in ascolto sulla porta ${PORT}`);

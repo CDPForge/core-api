@@ -3,7 +3,6 @@ import { endpoints } from '../config/endpoints/endpoints';
 
 const router = Router();
 
-// Registra automaticamente tutti gli endpoint relativi agli users
 Object.entries(endpoints).forEach(([_, config]) => {
   if (config.path.startsWith('/api/analytics')) {
     const localPath = config.path.replace('/api/analytics', '');
