@@ -6,10 +6,10 @@ import {
   AutoIncrement,
   Unique,
   DataType,
-} from 'sequelize-typescript';
+} from "sequelize-typescript";
 
 @Table({
-  tableName: 'plugins', // Assicura che il nome della tabella sia corretto
+  tableName: "plugins", // Assicura che il nome della tabella sia corretto
   timestamps: false, // Disabilita i timestamp automatici se non usi updatedAt
 })
 export class Plugin extends Model {

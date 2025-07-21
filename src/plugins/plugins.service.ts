@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
-import { Plugin } from './plugin.model';
-import { PluginPipeline } from '../types/plugins';
+import { Injectable } from "@nestjs/common";
+import { InjectModel } from "@nestjs/sequelize";
+import { Plugin } from "./plugin.model";
+import { PluginPipeline } from "../types/plugins";
 
 @Injectable()
 export class PluginsService {
@@ -28,7 +28,7 @@ export class PluginsService {
     const firstTopic = process.env.PIPELINEMANAGER_FIRST_TOPIC;
     if (!firstTopic) {
       console.error(
-        'PIPELINEMANAGER_FIRST_TOPIC environment variable not set.',
+        "PIPELINEMANAGER_FIRST_TOPIC environment variable not set.",
       );
       return null; // First topic not defined
     }

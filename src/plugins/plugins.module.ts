@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
-import { SequelizeModule } from '@nestjs/sequelize';
-import { Plugin } from './plugin.model';
-import { PluginsService } from './plugins.service';
-import { PluginsController } from './plugins.controller';
+import { Module } from "@nestjs/common";
+import { SequelizeModule } from "@nestjs/sequelize";
+import { Plugin } from "./plugin.model";
+import { PluginsService } from "./plugins.service";
+import { PluginsController } from "./plugins.controller";
 
 @Module({
   imports: [SequelizeModule.forFeature([Plugin])],

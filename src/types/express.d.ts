@@ -1,4 +1,4 @@
-import { User as UserModel } from '../users/user.model'; // Adatta il path alla tua struttura
+import { User as UserModel } from "../users/user.model"; // Adatta il path alla tua struttura
 
 declare global {
   namespace Express {
