@@ -6,7 +6,7 @@ import { User } from "../users/user.model";
 import { Request } from "express";
 import { JwtRefreshGuard } from "./jwt-refresh.guard";
 
-@Controller("auth") // Definisce il percorso base per gli endpoint di questo controller
+@Controller("auth")
 export class AuthController {
   constructor(private authService: AuthService) {}
 
@@ -14,14 +14,13 @@ export class AuthController {
   @Post("login")
   async login(@Req() req: Request) {
     const user = req.user! as User;
-    return this.authService.login(user); // Chiama il metodo login del AuthService per generare il token JWT
+    return this.authService.login(user);
   }
 
-  @UseGuards(JwtAuthGuard) // Usa il JwtAuthGuard per proteggere questo endpoint
-  @Get("profile") // Esempio di endpoint protetto
+  @UseGuards(JwtAuthGuard)
+  @Get("profile")
   getProfile(@Req() req: Request) {
-    // L'oggetto 'user' è allegato alla richiesta dal JwtAuthGuard dopo la validazione del token JWT
-    return req.user; // Restituisce le informazioni dell'utente autenticato
+    return req.user;
   }
 
   @UseGuards(JwtRefreshGuard)

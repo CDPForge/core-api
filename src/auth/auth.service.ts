@@ -22,10 +22,15 @@ export class AuthService {
   async login(user: User) {
     const payload = { username: user.username, sub: user.id as number };
     return {
-      access_token: await this.jwtService.signAsync(payload, {
+      user: {
+        username: user.username,
+        id: user.id,
+        email: user.email,
+      },
+      accessToken: await this.jwtService.signAsync(payload, {
         expiresIn: "15m",
       }),
-      refresh_token: await this.jwtService.signAsync(payload, {
+      refreshToken: await this.jwtService.signAsync(payload, {
         expiresIn: "7d",
       }),
     };
