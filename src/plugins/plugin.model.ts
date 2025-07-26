@@ -10,7 +10,8 @@ import {
 
 @Table({
   tableName: "plugins", // Assicura che il nome della tabella sia corretto
-  timestamps: false, // Disabilita i timestamp automatici se non usi updatedAt
+  timestamps: true, // Disabilita i timestamp automatici se non usi updatedAt
+  underscored: true,
 })
 export class Plugin extends Model {
   @PrimaryKey
@@ -52,11 +53,4 @@ export class Plugin extends Model {
     defaultValue: null,
   })
   output_topic: string | null;
-
-  @Column({
-    type: DataType.DATE,
-    allowNull: false,
-    defaultValue: DataType.NOW, // Imposta il valore di default corrente
-  })
-  declare createdAt: Date;
 }

@@ -3,6 +3,7 @@ import { Column, Model, Table, DataType } from "sequelize-typescript";
 @Table({
   timestamps: true,
   tableName: "users",
+  underscored: true,
 })
 export class User extends Model {
   @Column({
@@ -19,13 +20,11 @@ export class User extends Model {
 
   @Column({
     allowNull: false,
-    field: "password",
   })
   password!: string;
 
   @Column({
     defaultValue: false,
-    field: "is_super_admin",
   })
   isSuperAdmin!: boolean;
 
@@ -35,9 +34,7 @@ export class User extends Model {
   })
   status!: string;
 
-  @Column({
-    field: "last_login_at",
-  })
+  @Column({})
   lastLoginAt?: Date;
 
   @Column({
@@ -49,14 +46,4 @@ export class User extends Model {
     field: "reset_token_expiry",
   })
   resetTokenExpiry?: Date;
-
-  @Column({
-    field: "created_at",
-  })
-  declare createdAt?: Date;
-
-  @Column({
-    field: "updated_at",
-  })
-  declare updatedAt?: Date;
 }
