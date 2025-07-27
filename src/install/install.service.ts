@@ -41,13 +41,6 @@ export class InstallService {
         },
         { transaction },
       );
-
-      await this.clientsService.create(
-        {
-          name: installDto.clientName,
-        },
-        { transaction },
-      );
       return await transaction.commit();
     } catch (error) {
       await transaction.rollback();
