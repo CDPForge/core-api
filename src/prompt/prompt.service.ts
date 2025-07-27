@@ -6,8 +6,7 @@ import { createReactAgent } from "@langchain/langgraph/prebuilt";
 
 @Injectable()
 export class PromptService {
-
-  constructor(private configService: ConfigService) { }
+  constructor(private configService: ConfigService) {}
 
   async send(message: string): Promise<string> {
     const client = new MultiServerMCPClient({
@@ -16,11 +15,11 @@ export class PromptService {
       additionalToolNamePrefix: "mcp",
       useStandardContentBlocks: true,
       mcpServers: {
-        "opensearch": { 
-          "url": this.configService.get("MCP_URL")!,
-          "transport": "sse",
-        }
-      }
+        opensearch: {
+          url: this.configService.get("MCP_URL")!,
+          transport: "sse",
+        },
+      },
     });
 
     let ret: string = "";

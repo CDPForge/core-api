@@ -4,13 +4,11 @@ import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 
 @Controller("prompt")
 @UseGuards(JwtAuthGuard)
-export class PromptController {  
+export class PromptController {
   constructor(private readonly promptService: PromptService) {}
 
   @Post()
-  async create(@Body() promptData: any): Promise<string> { 
+  async create(@Body() promptData: any): Promise<string> {
     return this.promptService.send(promptData.message);
-    
   }
-
 }
