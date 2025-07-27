@@ -8,6 +8,7 @@ import * as path from "path";
 export class OpensearchProvider {
   private readonly client: Client;
   constructor(private configService: ConfigService) {
+    const unsecure = this.configService.get("OPENSEARCH_ALLOW_UNSECURE") == "true"
     this.client = new Client({
       node: this.configService.get("OPENSEARCH_URL")!,
       auth: {
@@ -16,7 +17,7 @@ export class OpensearchProvider {
       },
       ssl: {
         ca: fs.readFileSync(path.join(__dirname, "../../certs/root-ca.pem")),
-        rejectUnauthorized: true,
+        rejectUnauthorized: !unsecure,
       },
     });
   }

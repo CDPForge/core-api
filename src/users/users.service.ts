@@ -13,6 +13,12 @@ export class UsersService {
     });
   }
 
+  async findByEmail(email: string): Promise<User | null> {
+    return await this.userRepository.scope().findOne({
+      where: { email },
+    });
+  }
+
   async create(
     user: Partial<User>,
     options?: { transaction?: Transaction },
