@@ -1,14 +1,21 @@
-import {Injectable, OnApplicationShutdown, OnModuleDestroy, OnModuleInit} from "@nestjs/common";
+import {
+  Injectable,
+  OnApplicationShutdown,
+  OnModuleDestroy,
+  OnModuleInit,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
-import {CompiledStateGraph} from "@langchain/langgraph";
+import { CompiledStateGraph } from "@langchain/langgraph";
 
 @Injectable()
-export class PromptService implements OnModuleInit, OnModuleDestroy, OnApplicationShutdown {
+export class PromptService
+  implements OnModuleInit, OnModuleDestroy, OnApplicationShutdown
+{
   private client: MultiServerMCPClient;
-  private agent: CompiledStateGraph<any,any>;
+  private agent: CompiledStateGraph<any, any>;
   constructor(private configService: ConfigService) {}
 
   async onModuleInit() {

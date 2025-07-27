@@ -8,6 +8,7 @@ export class PromptController {
   constructor(private readonly promptService: PromptService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   async create(@Body() promptData: any): Promise<string> {
     return this.promptService.send(promptData.message);
   }

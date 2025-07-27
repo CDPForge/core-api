@@ -1,10 +1,12 @@
 import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
 import { AppModule } from "./app.module";
+import * as cookieParser from "cookie-parser";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors();
+  app.enableCors({ origin: 'http://localhost:8080', credentials: true, });
+  app.use(cookieParser());
   // 🔐 Abilita la validazione automatica dei DTO
   app.useGlobalPipes(
     new ValidationPipe({

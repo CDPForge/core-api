@@ -21,7 +21,7 @@ export class ClientsService {
   ) {
     const client = await Client.create(clientBody, options);
 
-    let indexTemplate = await this.settingService.get("os.indexsetting");
+    const indexTemplate = await this.settingService.get("os.indexsetting");
     if (!indexTemplate) {
       throw new Error("Index setting not found");
     }

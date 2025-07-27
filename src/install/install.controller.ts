@@ -1,4 +1,4 @@
-import {Post, UseGuards, Body, Controller, Res, Get} from "@nestjs/common";
+import { Post, UseGuards, Body, Controller, Res, Get } from "@nestjs/common";
 import { Response } from "express";
 import { InstallService } from "./install.service";
 import { InstallDto } from "./install.dto";

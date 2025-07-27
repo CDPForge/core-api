@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import {Global, Module} from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
 import { PassportModule } from "@nestjs/passport";
 import { ConfigService } from "@nestjs/config";
@@ -9,6 +9,7 @@ import { JwtStrategy } from "./jwt.strategy";
 import { LocalStrategy } from "./local.strategy";
 import { RefreshTokenStrategy } from "./refresh-token.strategy";
 
+@Global()
 @Module({
   imports: [
     UsersModule,
