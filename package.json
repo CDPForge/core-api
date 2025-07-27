@@ -20,6 +20,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@langchain/google-genai": "^0.2.10",
+    "@langchain/langgraph": "^0.3.8",
+    "@langchain/mcp-adapters": "^0.5.3",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
