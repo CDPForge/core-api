@@ -12,6 +12,7 @@ import { OpensearchProvider } from "./opensearch/opensearch.provider";
 import { OpensearchModule } from "./opensearch/opensearch.module";
 import { SettingsModule } from "./settings/settings.module";
 import { InstallModule } from "./install/install.module";
+import { PromptModule } from "./prompt/prompt.module";
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { InstallModule } from "./install/install.module";
     OpensearchModule,
     SettingsModule,
     InstallModule,
+    PromptModule,
   ],
   controllers: [AppController],
   providers: [AppService, OpensearchProvider],
