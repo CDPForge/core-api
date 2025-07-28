@@ -50,10 +50,38 @@ export class PromptService
 
     try {
       const response = await this.agent.invoke({
-        messages: [{ role: "user", content: message }],
+        messages: [
+          {
+            role: "system",
+            content: `Agisci come un assistente BI. Puoi usare solo i dati contenuti negli indici OpenSearch: users-logs-23.
+            Non usare o menzionare altri dati esterni o indici differenti.
+            Ogni volta che ricevi una domanda, cerca prima i dati su OpenSearch utilizzando gli strumenti disponibili.
+            Non inventare dati: se non puoi trovare l'informazione, rispondi che non è disponibile.`,
+          },{ role: "user", content: message }],
       });
 
-      ret = response.messages.pop()?.content?.toString() ?? "";
+
+      const allMessages = response.messages;
+      let result = "";
+
+      for (let msg of allMessages) {
+        if (!msg.lc_id[2] || !msg.lc_kwargs) continue;
+
+        const msgType = msg.lc_id[2];
+        const content = msg.lc_kwargs.content;
+
+        // ✅ RITORNA: AIMessage con risposta finale (stringa)
+        if (msgType === "AIMessage" && typeof content === "string" && content.trim()) {
+          result += (result ? "\n\n" : "") + content;
+        }
+
+        // ✅ RITORNA: ToolMessage con dati da OpenSearch (mantieni formattazione originale)
+        if (msgType === "ToolMessage" && typeof content === "string" && content.trim()) {
+          result += (result ? "\n\n" : "") + content;
+        }
+      }
+
+      return result || "Nessun dato disponibile";
     } catch (error) {
       console.error("Error during agent execution:", error);
       if (error.name === "ToolException") {
