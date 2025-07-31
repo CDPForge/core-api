@@ -1,14 +1,16 @@
-import { Injectable } from "@nestjs/common";
+import {Inject, Injectable} from "@nestjs/common";
 import { UsersService } from "../users/users.service";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import { User } from "src/users/user.model";
+import {CACHE_MANAGER, Cache} from "@nestjs/cache-manager";
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache
   ) {}
 
   async validateUser(username: string, pass: string): Promise<User | null> {
@@ -23,8 +25,8 @@ export class AuthService {
   }
 
   async login(user: User) {
-    const payload = { username: user.username, sub: user.id as number };
-    return {
+    const payload = { username: user.username, sub: user.id.toString() };
+    const res = {
       user: {
         username: user.get("username"),
         id: user.id,
@@ -37,5 +39,10 @@ export class AuthService {
         expiresIn: "7d",
       }),
     };
+
+    const cacheKey = `refreshToken:${res.refreshToken}`;
+    const refreshTokenTTL = 7 * 24 * 60 * 60;
+    await this.cacheManager.set(cacheKey, user.id, refreshTokenTTL);
+    return res;
   }
 }

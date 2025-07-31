@@ -1,14 +1,15 @@
-import { Injectable } from "@nestjs/common";
+import {Inject, Injectable, UnauthorizedException} from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { ConfigService } from "@nestjs/config";
+import {CACHE_MANAGER, Cache} from "@nestjs/cache-manager";
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(
   Strategy,
   "jwt-refresh",
 ) {
-  constructor(private configService: ConfigService) {
+  constructor(private configService: ConfigService, @Inject(CACHE_MANAGER) private cacheManager: Cache) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (req: Request & { cookies: any }) => {
@@ -21,8 +22,17 @@ export class RefreshTokenStrategy extends PassportStrategy(
     });
   }
 
-  async validate(payload: any) {
-    // TODO: User redis for one time refreshtoken guard
+  async validate(req: Request & { cookies: any }, payload: any) {
+    const refreshToken = req?.cookies?.refreshToken;
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token not found');
+    }
+    const cacheKey = `refreshToken:${refreshToken}`;
+    const tokenExists = await this.cacheManager.get(cacheKey);
+    if (!tokenExists) {
+      throw new UnauthorizedException('Unvalid Token');
+    }
+    await this.cacheManager.del(cacheKey);
     return { userId: payload.sub };
   }
 }

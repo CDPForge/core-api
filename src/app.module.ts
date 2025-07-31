@@ -13,6 +13,7 @@ import { OpensearchModule } from "./opensearch/opensearch.module";
 import { SettingsModule } from "./settings/settings.module";
 import { InstallModule } from "./install/install.module";
 import { PromptModule } from "./prompt/prompt.module";
+import { RedisModule } from "./cache/redis.module";
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { PromptModule } from "./prompt/prompt.module";
     SettingsModule,
     InstallModule,
     PromptModule,
+    RedisModule
   ],
   controllers: [AppController],
   providers: [AppService, OpensearchProvider],
