@@ -9,12 +9,13 @@ export class RefreshTokenStrategy extends PassportStrategy(
   Strategy,
   "jwt-refresh",
 ) {
-  constructor(private configService: ConfigService, @Inject(CACHE_MANAGER) private cacheManager: Cache) {
+  constructor(configService: ConfigService, @Inject(CACHE_MANAGER) private cacheManager: Cache) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (req: Request & { cookies: any }) => {
           return req?.cookies?.refreshToken || null;
         },
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>("JWT_SECRET") as string,
@@ -22,17 +23,17 @@ export class RefreshTokenStrategy extends PassportStrategy(
     });
   }
 
-  async validate(req: Request & { cookies: any }, payload: any) {
+  async validate(req: Request & { cookies: any }, payload: { sub: string; username: string }) {
     const refreshToken = req?.cookies?.refreshToken;
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token not found');
     }
     const cacheKey = `refreshToken:${refreshToken}`;
     const tokenExists = await this.cacheManager.get(cacheKey);
-    if (!tokenExists) {
+    if (!tokenExists || tokenExists !== payload.sub.toString()) {
       throw new UnauthorizedException('Unvalid Token');
     }
     await this.cacheManager.del(cacheKey);
-    return { userId: payload.sub };
+    return { userId: payload.sub, username: payload.username };
   }
 }
