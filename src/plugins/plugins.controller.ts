@@ -1,8 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-} from "@nestjs/common";
+import { Controller, Get, Param } from "@nestjs/common";
 import { PluginsService } from "./plugins.service";
 import { Plugin } from "./plugin.model";
 

@@ -42,5 +42,5 @@ export class Instance extends Model {
   active!: boolean;
 
   @BelongsTo(() => Client, { foreignKey: "client" })
-  clientEntity?: Client;
+  clientEntity: Client;
 }

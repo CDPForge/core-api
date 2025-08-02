@@ -1,4 +1,12 @@
-import { Column, Model, Table, DataType } from "sequelize-typescript";
+import {
+  Column,
+  Model,
+  Table,
+  DataType,
+  BelongsToMany,
+} from "sequelize-typescript";
+import { Role } from "../roles/entities/role.entity";
+import { UserRole } from "../roles/entities/userRole.entity";
 
 @Table({
   timestamps: true,
@@ -46,4 +54,7 @@ export class User extends Model {
     field: "reset_token_expiry",
   })
   resetTokenExpiry?: Date;
+
+  @BelongsToMany(() => Role, () => UserRole)
+  roles: Role[];
 }

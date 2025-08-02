@@ -8,12 +8,16 @@ import { AuthController } from "./auth.controller";
 import { JwtStrategy } from "./jwt.strategy";
 import { LocalStrategy } from "./local.strategy";
 import { RefreshTokenStrategy } from "./refresh-token.strategy";
+import { InstancesModule } from "../instances/instances.module";
+import { PermissionsModule } from "../permissions/permissions.module";
 
 @Global()
 @Module({
   imports: [
     UsersModule,
     PassportModule,
+    InstancesModule,
+    PermissionsModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => {
         const secret = configService.get<string>("JWT_SECRET");
