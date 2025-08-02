@@ -4,6 +4,10 @@ import { ExtractJwt, Strategy } from "passport-jwt";
 import { ConfigService } from "@nestjs/config";
 import { CACHE_MANAGER, Cache } from "@nestjs/cache-manager";
 
+const cookieExtractor = (req: Request & { cookies: any }) => {
+  return req?.cookies?.refreshToken;
+};
+
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(
   Strategy,
@@ -15,9 +19,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (req: Request & { cookies: any }) => {
-          return req?.cookies?.refreshToken || null;
-        },
+        cookieExtractor,
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
       ignoreExpiration: false,
@@ -30,7 +32,8 @@ export class RefreshTokenStrategy extends PassportStrategy(
     req: Request & { cookies: any },
     payload: { sub: string; username: string },
   ) {
-    const refreshToken = req?.cookies?.refreshToken;
+    const refreshToken =
+      cookieExtractor(req) || ExtractJwt.fromAuthHeaderAsBearerToken()(req);
     if (!refreshToken) {
       throw new UnauthorizedException("Refresh token not found");
     }

@@ -46,7 +46,7 @@ export class PromptService
   }
 
   async send(message: string): Promise<string> {
-    let ret = "";
+    const ret = "";
 
     try {
       const response = await this.agent.invoke({
@@ -57,26 +57,35 @@ export class PromptService
             Non usare o menzionare altri dati esterni o indici differenti.
             Ogni volta che ricevi una domanda, cerca prima i dati su OpenSearch utilizzando gli strumenti disponibili.
             Non inventare dati: se non puoi trovare l'informazione, rispondi che non è disponibile.`,
-          },{ role: "user", content: message }],
+          },
+          { role: "user", content: message },
+        ],
       });
-
 
       const allMessages = response.messages;
       let result = "";
 
-      for (let msg of allMessages) {
+      for (const msg of allMessages) {
         if (!msg.lc_id[2] || !msg.lc_kwargs) continue;
 
         const msgType = msg.lc_id[2];
         const content = msg.lc_kwargs.content;
 
         // ✅ RITORNA: AIMessage con risposta finale (stringa)
-        if (msgType === "AIMessage" && typeof content === "string" && content.trim()) {
+        if (
+          msgType === "AIMessage" &&
+          typeof content === "string" &&
+          content.trim()
+        ) {
           result += (result ? "\n\n" : "") + content;
         }
 
         // ✅ RITORNA: ToolMessage con dati da OpenSearch (mantieni formattazione originale)
-        if (msgType === "ToolMessage" && typeof content === "string" && content.trim()) {
+        if (
+          msgType === "ToolMessage" &&
+          typeof content === "string" &&
+          content.trim()
+        ) {
           result += (result ? "\n\n" : "") + content;
         }
       }

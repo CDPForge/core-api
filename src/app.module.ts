@@ -14,6 +14,7 @@ import { SettingsModule } from "./settings/settings.module";
 import { InstallModule } from "./install/install.module";
 import { PromptModule } from "./prompt/prompt.module";
 import { RedisModule } from "./cache/redis.module";
+import { LogsModule } from "./logs/logs.module";
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { RedisModule } from "./cache/redis.module";
     InstallModule,
     PromptModule,
     RedisModule,
+    LogsModule,
   ],
   controllers: [AppController],
   providers: [AppService, OpensearchProvider],

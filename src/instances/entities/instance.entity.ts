@@ -5,6 +5,7 @@ import {
   DataType,
   ForeignKey,
   Default,
+  BelongsTo,
 } from "sequelize-typescript";
 import { Client } from "../../clients/entities/client.entity";
 
@@ -23,6 +24,12 @@ export class Instance extends Model {
 
   @Column({
     type: DataType.STRING(100),
+    allowNull: false,
+  })
+  name!: string;
+
+  @Column({
+    type: DataType.STRING(100),
     allowNull: true,
   })
   description?: string;
@@ -33,4 +40,7 @@ export class Instance extends Model {
     allowNull: false,
   })
   active!: boolean;
+
+  @BelongsTo(() => Client, { foreignKey: "client" })
+  clientEntity?: Client;
 }

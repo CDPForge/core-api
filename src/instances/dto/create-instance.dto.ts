@@ -9,5 +9,9 @@ export class CreateInstanceDto {
 
   @IsString()
   @Length(4, 100)
+  name!: string;
+
+  @IsString()
+  @Length(4, 100)
   description?: string;
 }

@@ -1,4 +1,5 @@
-import { Column, Model, Table } from "sequelize-typescript";
+import { Column, Model, Table, HasMany } from "sequelize-typescript";
+import { Instance } from "../../instances/entities/instance.entity";
 
 @Table({
   timestamps: true,
@@ -11,4 +12,7 @@ export class Client extends Model {
     unique: true,
   })
   name!: string;
+
+  @HasMany(() => Instance, { foreignKey: "client" })
+  instances?: Instance[];
 }

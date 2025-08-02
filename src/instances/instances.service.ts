@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common";
-import { UpdateInstanceDto } from "./dto/update-instance.dto";
 import { Instance } from "./entities/instance.entity";
 import { Transaction } from "sequelize";
 
@@ -13,16 +12,18 @@ export class InstancesService {
   }
 
   async findAll() {
-    return await Instance.findAll();
+    return await Instance.findAll({
+      include: ["clientEntity"],
+    });
   }
 
   async findOne(id: number) {
-    return await Instance.findByPk(id);
+    return await Instance.findByPk(id, { include: ["clientEntity"] });
   }
 
   async update(
     id: number,
-    updateInstanceDto: UpdateInstanceDto,
+    updateInstanceDto: Partial<Instance>,
     options?: { transaction?: Transaction },
   ) {
     return await Instance.update(updateInstanceDto, {

@@ -1,9 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { Client } from "./entities/client.entity";
+import { Instance } from "../instances/entities/instance.entity";
 import { Transaction } from "sequelize";
 import { Client as OsClient } from "@opensearch-project/opensearch";
 import { SettingsService } from "../settings/settings.service";
 import { OpensearchProvider } from "../opensearch/opensearch.provider";
+import { col, fn } from "sequelize";
 
 @Injectable()
 export class ClientsService {
@@ -42,11 +44,39 @@ export class ClientsService {
   }
 
   async findAll() {
-    return await Client.findAll();
+    return await Client.findAll({
+      attributes: {
+        include: [[fn("COUNT", col("instances.id")), "instancesCount"]],
+      },
+      include: [
+        {
+          model: Instance,
+          attributes: [],
+          required: false,
+        },
+      ],
+      group: ["Client.id"],
+      raw: false,
+      nest: true,
+    });
   }
 
   async findOne(id: number) {
-    return await Client.findByPk(id);
+    return await Client.findByPk(id, {
+      attributes: {
+        include: [[fn("COUNT", col("instances.id")), "instancesCount"]],
+      },
+      include: [
+        {
+          model: Instance,
+          attributes: [],
+          required: false,
+        },
+      ],
+      group: ["Client.id"],
+      raw: false,
+      nest: true,
+    });
   }
 
   async update(
