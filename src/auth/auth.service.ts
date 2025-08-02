@@ -1,16 +1,16 @@
-import {Inject, Injectable} from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { UsersService } from "../users/users.service";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import { User } from "src/users/user.model";
-import {CACHE_MANAGER, Cache} from "@nestjs/cache-manager";
+import { CACHE_MANAGER, Cache } from "@nestjs/cache-manager";
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async validateUser(username: string, pass: string): Promise<User | null> {

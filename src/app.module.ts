@@ -37,7 +37,7 @@ import { RedisModule } from "./cache/redis.module";
     SettingsModule,
     InstallModule,
     PromptModule,
-    RedisModule
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [AppService, OpensearchProvider],
