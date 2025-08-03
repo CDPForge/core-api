@@ -3,7 +3,8 @@ import { UsersService } from "../users/users.service";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import { User } from "src/users/user.model";
-import { CACHE_MANAGER, Cache } from "@nestjs/cache-manager";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import type { Cache } from "cache-manager";
 import { InstancesService } from "../instances/instances.service";
 import { PermissionsService } from "../permissions/permissions.service";
 
@@ -75,8 +76,8 @@ export class AuthService {
     };
 
     const cacheKey = `refreshToken:${res.refreshToken}`;
-    const refreshTokenTTL = 7 * 24 * 60 * 60;
-    await this.cacheManager.set(cacheKey, user.id, refreshTokenTTL);
+    const refreshTokenTTL = 7 * 24 * 60 * 60 * 1000;
+    await this.cacheManager.set(cacheKey, user.id.toString(), refreshTokenTTL);
     return res;
   }
 }

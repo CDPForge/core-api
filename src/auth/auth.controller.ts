@@ -13,6 +13,22 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post("login")
   async login(@Req() req: Request, @Res() res: Response) {
+    return await this._login(req, res);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("profile")
+  getProfile(@Req() req: Request) {
+    return req.user;
+  }
+
+  @UseGuards(JwtRefreshGuard)
+  @Post("refresh")
+  async refresh(@Req() req: Request, @Res() res: Response) {
+    return await this._login(req, res);
+  }
+
+  private async _login(@Req() req: Request, @Res() res: Response) {
     const user = req.user! as User;
     const credentials = await this.authService.login(user);
     const refreshToken = credentials.refreshToken;
@@ -25,19 +41,6 @@ export class AuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 giorni
       })
       .json(credentials);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get("profile")
-  getProfile(@Req() req: Request) {
-    return req.user;
-  }
-
-  @UseGuards(JwtRefreshGuard)
-  @Post("refresh")
-  async refresh(@Req() req: Request) {
-    const user = req.user! as User;
-    return this.authService.login(user);
   }
 
   @Get("logout")

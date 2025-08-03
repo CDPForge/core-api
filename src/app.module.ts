@@ -20,6 +20,7 @@ import { RolesModule } from "./roles/roles.module";
 
 @Module({
   imports: [
+    RedisModule,
     ConfigModule.forRoot({ isGlobal: true }),
     SequelizeModule.forRootAsync({
       imports: [ConfigModule], // Importa ConfigModule se usi ConfigService
@@ -40,7 +41,6 @@ import { RolesModule } from "./roles/roles.module";
     SettingsModule,
     InstallModule,
     PromptModule,
-    RedisModule,
     LogsModule,
     PermissionsModule,
     RolesModule,

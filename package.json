@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@keyv/redis": "^5.1.0",
     "@langchain/google-genai": "^0.2.10",
     "@langchain/langgraph": "^0.3.8",
     "@langchain/mcp-adapters": "^0.5.3",
@@ -34,7 +35,7 @@
     "@nestjs/sequelize": "^11.0.0",
     "@opensearch-project/opensearch": "^3.5.1",
     "bcrypt": "^6.0.0",
-    "cache-manager-redis-store": "^3.0.1",
+    "cache-manager": "^7.1.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "cookie-parser": "^1.4.7",

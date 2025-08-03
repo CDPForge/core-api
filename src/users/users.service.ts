@@ -51,4 +51,8 @@ export class UsersService {
       ...(options?.transaction && { transaction: options.transaction }),
     });
   }
+
+  async findById(id: number) {
+    return await this.userRepository.scope().findByPk(id);
+  }
 }

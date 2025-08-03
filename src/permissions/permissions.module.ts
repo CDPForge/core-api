@@ -5,10 +5,7 @@ import { SequelizeModule } from "@nestjs/sequelize";
 import { Permission } from "./entities/permission.entity";
 import { InstancesModule } from "../instances/instances.module";
 @Module({
-  imports: [
-    SequelizeModule.forFeature([Permission]),
-    InstancesModule,
-  ],
+  imports: [SequelizeModule.forFeature([Permission]), InstancesModule],
   controllers: [PermissionsController],
   providers: [PermissionsService],
   exports: [PermissionsService],

@@ -4,6 +4,7 @@ import { ExtractJwt, Strategy } from "passport-jwt";
 import { ConfigService } from "@nestjs/config";
 import { CACHE_MANAGER, Cache } from "@nestjs/cache-manager";
 import { User } from "../users/user.model";
+import { UsersService } from "../users/users.service";
 
 const cookieExtractor = (req: Request & { cookies: any }) => {
   return req?.cookies?.refreshToken;
@@ -16,6 +17,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
 ) {
   constructor(
     configService: ConfigService,
+    private usersService: UsersService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     super({
@@ -44,10 +46,6 @@ export class RefreshTokenStrategy extends PassportStrategy(
       throw new UnauthorizedException("Unvalid Token");
     }
     await this.cacheManager.del(cacheKey);
-    return {
-      sub: payload.sub,
-      user: payload.user,
-      permissions: payload.permissions,
-    };
+    return await this.usersService.findById(payload.user.id);
   }
 }
