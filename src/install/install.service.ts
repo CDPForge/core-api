@@ -4,7 +4,6 @@ import { UsersService } from "../users/users.service";
 import { InstancesService } from "../instances/instances.service";
 import { ClientsService } from "../clients/clients.service";
 import { Sequelize } from "sequelize-typescript";
-import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class InstallService {
@@ -21,7 +20,7 @@ export class InstallService {
         {
           username: "admin",
           email: installDto.user.email,
-          password: bcrypt.hashSync(installDto.user.password, 12),
+          password: installDto.user.password,
           isSuperAdmin: true,
         },
         { transaction },

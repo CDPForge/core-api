@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/sequelize";
 import { User } from "./user.model";
 import { Transaction } from "sequelize";
+import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class UsersService {
@@ -27,6 +28,7 @@ export class UsersService {
     user: Partial<User>,
     options?: { transaction?: Transaction },
   ): Promise<User> {
+    user.password = bcrypt.hashSync(user.password!, 12);
     return this.userRepository.create(user, options);
   }
 

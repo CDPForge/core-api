@@ -8,6 +8,7 @@ import { SettingsModule } from "../settings/settings.module";
 import { SettingsService } from "../settings/settings.service";
 import { OpensearchProvider } from "../opensearch/opensearch.provider";
 import { OpensearchModule } from "../opensearch/opensearch.module";
+import { PermissionsGuard } from "../auth/permission.guard";
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { OpensearchModule } from "../opensearch/opensearch.module";
     JwtAuthGuard,
     SettingsService,
     OpensearchProvider,
+    PermissionsGuard,
   ],
   exports: [ClientsService],
 })

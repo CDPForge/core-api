@@ -14,7 +14,7 @@ import { Role } from "./role.entity";
   timestamps: true,
   underscored: true,
 })
-export class UserRole extends Model<UserRole> {
+export class UserRole extends Model {
   @ForeignKey(() => User)
   @Column({
     type: DataType.INTEGER,
