@@ -1,0 +1,11 @@
+CREATE TABLE segments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    query JSON NOT NULL,
+    status VARCHAR(20) DEFAULT 'active',
+    last_executed_at TIMESTAMP NULL,
+    result_count INT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

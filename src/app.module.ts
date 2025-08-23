@@ -17,9 +17,11 @@ import { RedisModule } from "./cache/redis.module";
 import { LogsModule } from "./logs/logs.module";
 import { PermissionsModule } from "./permissions/permissions.module";
 import { RolesModule } from "./roles/roles.module";
+import { SegmentsModule } from "./segments/segments.module";
 
 @Module({
   imports: [
+    SegmentsModule,
     RedisModule,
     ConfigModule.forRoot({ isGlobal: true }),
     SequelizeModule.forRootAsync({
