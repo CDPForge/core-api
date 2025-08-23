@@ -11,7 +11,7 @@ const cookieExtractor = (req: Request & { cookies: any }) => {
 };
 
 @Injectable()
-export class RefreshTokenStrategy extends PassportStrategy(
+export class JwtRefreshStrategy extends PassportStrategy(
   Strategy,
   "jwt-refresh",
 ) {
