@@ -55,8 +55,7 @@ export class SegmentsService {
     }
 
     // TODO: The index should be dynamic, based on the client or instance
-    const index = 'your-index-name';
-
+    const index = 'users-logs-' + segment.get('client');
     if (scroll_id) {
       const response = await this.osClient.scroll({
         scroll_id,
@@ -75,7 +74,7 @@ export class SegmentsService {
         scroll: '1m', // keep the scroll window open for a minute
         size,
         body: {
-          query: segment.query,
+          query: segment.get('query'),
           _source: false, // we only need the IDs
         },
       });

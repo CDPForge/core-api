@@ -3,9 +3,10 @@ import {
   Column,
   Model,
   DataType,
-  PrimaryKey,
-  AutoIncrement,
+  ForeignKey, BelongsTo,
 } from 'sequelize-typescript';
+import {Client} from "../../clients/entities/client.entity";
+import {Instance} from "../../instances/entities/instance.entity";
 
 @Table({
   tableName: 'segments',
@@ -13,11 +14,6 @@ import {
   underscored: true,
 })
 export class Segment extends Model<Segment> {
-  @PrimaryKey
-  @AutoIncrement
-  @Column(DataType.INTEGER)
-  id: number;
-
   @Column({
     type: DataType.STRING,
     allowNull: false,
@@ -44,4 +40,24 @@ export class Segment extends Model<Segment> {
 
   @Column
   resultCount: number;
+
+  @ForeignKey(() => Client)
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+  })
+  client!: number;
+
+  @ForeignKey(() => Instance)
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
+  instance: number;
+
+  @BelongsTo(() => Client, { foreignKey: "client" })
+  clientEntity: Client;
+
+  @BelongsTo(() => Instance, { foreignKey: "instance" })
+  instanceEntity: Instance;
 }

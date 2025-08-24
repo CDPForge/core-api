@@ -11,7 +11,6 @@ export class PromptController {
   constructor(private readonly promptService: PromptService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   @Permissions('prompt')
   async create(@Req() req, @Body() promptData: any): Promise<string> {
     const user = req.user!.user as User;
