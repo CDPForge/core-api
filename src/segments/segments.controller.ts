@@ -53,8 +53,8 @@ export class SegmentsController {
   findResults(
     @Param('id') id: string,
     @Query('size') size?: string,
-    @Query('scroll_id') scroll_id?: string,
+    @Query('after_key') after_key?: string,
   ) {
-    return this.segmentsService.findResults(+id, size ? +size : 100, scroll_id);
+    return this.segmentsService.findResults(+id, size ? +size : 100, after_key);
   }
 }

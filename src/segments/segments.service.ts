@@ -5,6 +5,7 @@ import { CreateSegmentDto } from './dto/create-segment.dto';
 import { UpdateSegmentDto } from './dto/update-segment.dto';
 import { OpensearchProvider } from '../opensearch/opensearch.provider';
 import { Client } from '@opensearch-project/opensearch';
+import {TermsAggregation} from "@opensearch-project/opensearch/api/_types/_common.aggregations";
 
 @Injectable()
 export class SegmentsService {
@@ -48,43 +49,57 @@ export class SegmentsService {
     return total.value;
   }
 
-  async findResults(id: number, size: number = 10, scroll_id?: string) {
-    const segment = await this.findOne(id);
+  async findResults(
+      id: number,
+      size: number = 10,
+      after_key?: string
+  ) {
+    const segment: Segment | null = await this.findOne(id);
     if (!segment) {
       throw new Error('Segment not found');
     }
 
-    // TODO: The index should be dynamic, based on the client or instance
     const index = 'users-logs-' + segment.get('client');
-    if (scroll_id) {
-      const response = await this.osClient.scroll({
-        scroll_id,
-        scroll: '1m', // keep the scroll window open for another minute
-      });
+    const queryBody = segment.get('query');
 
-      return {
-        segment_id: id,
-        total: this.getTotalHits(response.body.hits.total),
-        ids: response.body.hits.hits.map((hit) => hit._id),
-        scroll_id: response.body._scroll_id,
-      };
-    } else {
-      const response = await this.osClient.search({
-        index,
-        scroll: '1m', // keep the scroll window open for a minute
-        size,
-        body: {
-          query: segment.get('query'),
-          _source: false, // we only need the IDs
+    const aggregationBody = {
+      size: 0, // Imposta a 0 perché non vogliamo documenti, ma solo aggregazioni
+      query: queryBody,
+      aggs: {
+        ids: {
+          composite: {
+            size: size,
+            sources: [
+              {
+                id: {
+                  terms: {
+                    field: "device.id",
+                  },
+                },
+              },
+            ],
+          },
         },
-      });
+      },
+    };
 
-      return {
-        segment_id: id,
-        total: this.getTotalHits(response.body.hits.total),
-        ids: response.body.hits.hits.map((hit) => hit._id),
-        scroll_id: response.body._scroll_id,
-      };
+    if (after_key) {
+      aggregationBody.aggs.ids.composite['after'] = JSON.parse(atob(after_key));
     }
+
+    const response = await this.osClient.search({
+      index,
+      body: aggregationBody,
+    });
+
+    const aggregationResults: TermsAggregation = response.body.aggregations!.ids;
+    const ids = aggregationResults.buckets.map((bucket: any) => bucket.key.id);
+
+    return {
+      segment_id: id,
+      total: aggregationResults.buckets.length, // Il conteggio è solo per la pagina corrente
+      ids: ids,
+      after_key: aggregationResults.after_key ? btoa(JSON.stringify(aggregationResults.after_key)) : undefined,
+    };
   }
 }
