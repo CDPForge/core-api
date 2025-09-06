@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Client } from "@opensearch-project/opensearch";
 import { ConfigService } from "@nestjs/config";
-import * as fs from "fs";
+import * as fs from "node:fs";
 import * as path from "path";
 
 @Injectable()
