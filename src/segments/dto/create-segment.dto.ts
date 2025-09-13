@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsObject, IsNotEmpty } from "class-validator";
+import {
+  IsString,
+  IsOptional,
+  IsObject,
+  IsNotEmpty,
+  IsNumber,
+} from "class-validator";
 
 export class CreateSegmentDto {
   @IsString()
@@ -16,4 +22,11 @@ export class CreateSegmentDto {
   @IsString()
   @IsOptional()
   status?: string;
+
+  @IsNumber()
+  client: number;
+
+  @IsNumber()
+  @IsOptional()
+  instance?: number;
 }

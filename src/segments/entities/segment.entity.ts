@@ -14,7 +14,7 @@ import { Instance } from "../../instances/entities/instance.entity";
   timestamps: true,
   underscored: true,
 })
-export class Segment extends Model<Segment> {
+export class Segment extends Model {
   @Column({
     type: DataType.STRING,
     allowNull: false,

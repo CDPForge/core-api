@@ -1,41 +1,35 @@
-import {Injectable, NotFoundException} from "@nestjs/common";
-import {InjectModel} from "@nestjs/sequelize";
-import {Segment} from "./entities/segment.entity";
-import {CreateSegmentDto} from "./dto/create-segment.dto";
-import {UpdateSegmentDto} from "./dto/update-segment.dto";
-import {OpensearchProvider} from "../opensearch/opensearch.provider";
-import {Client} from "@opensearch-project/opensearch";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { Segment } from "./entities/segment.entity";
+import { UpdateSegmentDto } from "./dto/update-segment.dto";
+import { OpensearchProvider } from "../opensearch/opensearch.provider";
+import { Client } from "@opensearch-project/opensearch";
 
 @Injectable()
 export class SegmentsService {
   private readonly osClient: Client;
 
-  constructor(
-    @InjectModel(Segment)
-    private segmentModel: typeof Segment,
-    private readonly osProvider: OpensearchProvider,
-  ) {
+  constructor(private readonly osProvider: OpensearchProvider) {
     this.osClient = this.osProvider.getClient();
   }
 
-  create(createSegmentDto: CreateSegmentDto): Promise<Segment> {
-    return this.segmentModel.create(createSegmentDto as any);
+  create(createSegmentDto: Partial<Segment>): Promise<Segment> {
+    return Segment.create(createSegmentDto);
   }
 
   findAll() {
-    return this.segmentModel.findAll();
+    return Segment.findAll();
   }
 
   findOne(id: number) {
-    return this.segmentModel.findByPk(id);
+    return Segment.findByPk(id);
   }
 
   update(id: number, updateSegmentDto: UpdateSegmentDto) {
-    return this.segmentModel.update(updateSegmentDto, { where: { id } });
+    return Segment.update(updateSegmentDto, { where: { id } });
   }
 
   remove(id: number) {
-    return this.segmentModel.destroy({ where: { id } });
+    return Segment.destroy({ where: { id } });
   }
 
   async findResults(id: number, size: number = 10, after_key?: string) {
