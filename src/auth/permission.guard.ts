@@ -62,13 +62,19 @@ export class PermissionsGuard implements CanActivate {
     // Gestisce sia array che stringa singola
     if (Array.isArray(headerValue)) {
       // Header multipli - Express li mette in array
-      requestedInstanceIds = headerValue.flatMap(v => v.split(",").map(id => parseInt(id.trim())));
-    } else if (headerValue.startsWith('[')) {
+      requestedInstanceIds = headerValue.flatMap((v) =>
+        v.split(",").map((id) => parseInt(id.trim())),
+      );
+    } else if (headerValue.startsWith("[")) {
       // JSON array
-      requestedInstanceIds = JSON.parse(headerValue).map((v: any) => parseInt(v));
+      requestedInstanceIds = JSON.parse(headerValue).map((v: any) =>
+        parseInt(v),
+      );
     } else {
       // Stringa separata da virgole
-      requestedInstanceIds = headerValue.split(",").map(v => parseInt(v.trim()));
+      requestedInstanceIds = headerValue
+        .split(",")
+        .map((v) => parseInt(v.trim()));
     }
 
     if (requestedInstanceIds.some((i: number) => isNaN(i))) {
@@ -77,15 +83,17 @@ export class PermissionsGuard implements CanActivate {
       );
     }
 
-    const hasAllPermissions = requiredPermissions.every(rp => {
-      return requestedInstanceIds.every( ri => {
-        return user.permissions.some((p) => p.instance === ri && p.permissions.includes(rp));
+    const hasAllPermissions = requiredPermissions.every((rp) => {
+      return requestedInstanceIds.every((ri) => {
+        return user.permissions.some(
+          (p) => p.instance === ri && p.permissions.includes(rp),
+        );
       });
     });
 
     if (!hasAllPermissions) {
       throw new ForbiddenException(
-          `Missing required permissions: ${requiredPermissions.join(", ")} for instances: ${requestedInstanceIds.join(", ")}`
+        `Missing required permissions: ${requiredPermissions.join(", ")} for instances: ${requestedInstanceIds.join(", ")}`,
       );
     }
 

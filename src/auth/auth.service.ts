@@ -51,7 +51,7 @@ export class AuthService {
       .map((permission, idx) => {
         if (permission.length > 0) {
           return {
-            client: instances[idx].get('client'),
+            client: instances[idx].get("client"),
             instance: instances[idx].id,
             permissions: permission.map((p) => p.get("name")),
           };

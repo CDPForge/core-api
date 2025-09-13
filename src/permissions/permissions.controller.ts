@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Query,
-  Res,
-  UseGuards,
-} from "@nestjs/common";
+import { Controller, Get, Param, Query, Res, UseGuards } from "@nestjs/common";
 import { PermissionsService } from "./permissions.service";
 import { Response } from "express";
 import { InstancesService } from "../instances/instances.service";

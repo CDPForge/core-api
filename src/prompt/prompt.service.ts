@@ -20,8 +20,8 @@ export class PromptService
   private client: MultiServerMCPClient;
   private agent: CompiledStateGraph<any, any>;
   constructor(
-      private configService: ConfigService,
-      @Inject(CACHE_MANAGER) private cacheManager: Cache
+    private configService: ConfigService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async onModuleInit() {
@@ -55,12 +55,12 @@ export class PromptService
     let result = "";
 
     try {
-      const indici = [ "users-logs-23" ];
+      const indici = ["users-logs-23"];
       const systemPrompt = `
       Sei un assistente specializzato in OpenSearch.
           Quando l’utente fa una domanda, DEVI usare esclusivamente i seguenti indici:
 
-          ${indici.map(i => "- " + i).join("\n")}
+          ${indici.map((i) => "- " + i).join("\n")}
 
       NON devi mai cercare in altri indici, anche se sembrano rilevanti.
           Se l’informazione richiesta non è disponibile in questi indici, rispondi che non puoi fornire il dato.
@@ -89,20 +89,20 @@ Formattazione risposta:
 
       const response = await this.agent.invoke({ messages });
       const aiMessage = response.messages.find(
-          (msg) =>
-              msg.lc_id?.[2] === "AIMessage" &&
-              typeof msg.lc_kwargs?.content === "string" &&
-              msg.lc_kwargs.content.trim()
+        (msg) =>
+          msg.lc_id?.[2] === "AIMessage" &&
+          typeof msg.lc_kwargs?.content === "string" &&
+          msg.lc_kwargs.content.trim(),
       );
 
       const toolMessages = response.messages
-          .filter(
-              (msg) =>
-                  msg.lc_id?.[2] === "ToolMessage" &&
-                  typeof msg.lc_kwargs?.content === "string" &&
-                  msg.lc_kwargs.content.trim()
-          )
-          .map((msg) => ({ role: "tool", content: msg.lc_kwargs.content }));
+        .filter(
+          (msg) =>
+            msg.lc_id?.[2] === "ToolMessage" &&
+            typeof msg.lc_kwargs?.content === "string" &&
+            msg.lc_kwargs.content.trim(),
+        )
+        .map((msg) => ({ role: "tool", content: msg.lc_kwargs.content }));
 
       result = aiMessage?.lc_kwargs.content || "Nessun dato disponibile";
 
@@ -111,7 +111,6 @@ Formattazione risposta:
         { role: "assistant", content: result },
         ...toolMessages,
       ]);
-
     } catch (error) {
       console.error("Error during agent execution:", error);
       if (error.name === "ToolException") {
@@ -122,7 +121,10 @@ Formattazione risposta:
     return result;
   }
 
-  private async savePromptHistory(user: User, newMessages: any[]): Promise<void> {
+  private async savePromptHistory(
+    user: User,
+    newMessages: any[],
+  ): Promise<void> {
     const cacheKey = `promptHistory:${user.id}`;
 
     // recupero la cronologia attuale
@@ -132,10 +134,16 @@ Formattazione risposta:
     const updatedHistory = [...history, ...newMessages];
 
     // limito la lunghezza per non far crescere troppo Redis
-    const trimmedHistory = updatedHistory.slice(-this.configService.get("REDIS_HISTORY_LIMIT"));
+    const trimmedHistory = updatedHistory.slice(
+      -this.configService.get("REDIS_HISTORY_LIMIT"),
+    );
 
     // salvo in cache
-    await this.cacheManager.set(cacheKey, trimmedHistory, this.configService.get("REDIS_HISTORY_TTL"));
+    await this.cacheManager.set(
+      cacheKey,
+      trimmedHistory,
+      this.configService.get("REDIS_HISTORY_TTL"),
+    );
   }
 
   private async getPromptHistory(user: User): Promise<any[]> {

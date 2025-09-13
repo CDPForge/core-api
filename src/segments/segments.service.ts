@@ -1,11 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
-import { Segment } from './entities/segment.entity';
-import { CreateSegmentDto } from './dto/create-segment.dto';
-import { UpdateSegmentDto } from './dto/update-segment.dto';
-import { OpensearchProvider } from '../opensearch/opensearch.provider';
-import { Client } from '@opensearch-project/opensearch';
-import {TermsAggregation} from "@opensearch-project/opensearch/api/_types/_common.aggregations";
+import {Injectable, NotFoundException} from "@nestjs/common";
+import {InjectModel} from "@nestjs/sequelize";
+import {Segment} from "./entities/segment.entity";
+import {CreateSegmentDto} from "./dto/create-segment.dto";
+import {UpdateSegmentDto} from "./dto/update-segment.dto";
+import {OpensearchProvider} from "../opensearch/opensearch.provider";
+import {Client} from "@opensearch-project/opensearch";
 
 @Injectable()
 export class SegmentsService {
@@ -39,30 +38,37 @@ export class SegmentsService {
     return this.segmentModel.destroy({ where: { id } });
   }
 
-  private getTotalHits(total: any): number {
-    if (!total) {
-      return 0;
-    }
-    if (typeof total === 'number') {
-      return total;
-    }
-    return total.value;
-  }
-
-  async findResults(
-      id: number,
-      size: number = 10,
-      after_key?: string
-  ) {
+  async findResults(id: number, size: number = 10, after_key?: string) {
     const segment: Segment | null = await this.findOne(id);
     if (!segment) {
-      throw new Error('Segment not found');
+      throw new Error("Segment not found");
     }
 
-    const index = 'users-logs-' + segment.get('client');
-    const queryBody = segment.get('query');
+    const index = "users-logs-" + segment.get("client");
+    const queryBody: Record<string, any> = segment.get("query") as Record<
+      string,
+      any
+    >;
 
-    const aggregationBody = {
+    const aggregationBody: {
+      size: number;
+      query: Record<string, any>;
+      aggs: {
+        ids: {
+          composite: {
+            size: number;
+            sources: Array<{
+              id: {
+                terms: {
+                  field: string;
+                };
+              };
+            }>;
+            after?: Record<string, any>;
+          };
+        };
+      };
+    } = {
       size: 0, // Imposta a 0 perché non vogliamo documenti, ma solo aggregazioni
       query: queryBody,
       aggs: {
@@ -84,7 +90,9 @@ export class SegmentsService {
     };
 
     if (after_key) {
-      aggregationBody.aggs.ids.composite['after'] = JSON.parse(atob(after_key));
+      aggregationBody.aggs.ids.composite["after"] = JSON.parse(
+        atob(after_key),
+      ) as Record<string, any>;
     }
 
     const response = await this.osClient.search({
@@ -92,68 +100,48 @@ export class SegmentsService {
       body: aggregationBody,
     });
 
-    const aggregationResults: TermsAggregation = response.body.aggregations!.ids;
-    const ids = aggregationResults.buckets.map((bucket: any) => bucket.key.id);
+    const aggregationResults = response.body.aggregations?.ids as {
+      buckets: Array<{ key: { id: string } }>;
+      after_key?: Record<string, any>;
+    };
+    const ids = aggregationResults.buckets.map((bucket) => bucket.key.id);
 
     return {
       segment_id: id,
       total: aggregationResults.buckets.length, // Il conteggio è solo per la pagina corrente
       ids: ids,
-      after_key: aggregationResults.after_key ? btoa(JSON.stringify(aggregationResults.after_key)) : undefined,
+      after_key: aggregationResults.after_key
+        ? btoa(JSON.stringify(aggregationResults.after_key))
+        : undefined,
     };
   }
 
-  async getMapping(clientId: number): Promise<any> {
-    const indexPattern = `users-logs-${clientId}-*`;
+  async getMapping(clientId: number) {
+    const indexAlias = `users-logs-${clientId}`;
 
     // Get all indices matching the pattern
-    const indicesResponse = await this.osClient.cat.indices({
-      index: indexPattern,
-      format: 'json',
-      h: 'index',
-      s: 'index:desc' // Sort by index name descending
+    const indicesResponseRaw = await this.osClient.indices.getAlias({
+      name: indexAlias,
     });
 
-    if (!indicesResponse.body || indicesResponse.body.length === 0) {
+    // Find the key (index name) where the alias has is_write_index: true
+    const writeIndex = Object.keys(indicesResponseRaw.body).find(
+      (indexName) => {
+        return indicesResponseRaw.body[indexName].aliases?.[indexAlias]
+          ?.is_write_index;
+      },
+    );
+
+    if (writeIndex == null) {
       throw new NotFoundException(`No indices found for client ${clientId}`);
     }
 
-    // The indices are sorted by name descending, so the first one is the latest
-    const latestIndex = indicesResponse.body[0].index;
-
     // Get the mapping for the latest index
     const mappingResponse = await this.osClient.indices.getMapping({
-      index: latestIndex,
+      index: writeIndex,
     });
-
-    const properties = mappingResponse.body[latestIndex].mappings.properties;
 
     // Transform the properties into the format expected by the frontend
-    const formattedMapping = Object.keys(properties).map(key => {
-      const prop = properties[key];
-      let type = prop.type;
-      let choices;
-
-      if (prop.fields && prop.fields.keyword) {
-          type = 'text';
-      }
-
-      if (type === 'long' || type === 'integer') {
-          type = 'number';
-      } else if (type === 'date') {
-          type = 'date';
-      } else if (type === 'boolean') {
-          type = 'boolean';
-      }
-
-      return {
-        id: key,
-        label: key.charAt(0).toUpperCase() + key.slice(1),
-        type: type,
-        choices: choices
-      };
-    });
-
-    return formattedMapping;
+    return mappingResponse.body?.[writeIndex]?.mappings?.properties || {};
   }
 }

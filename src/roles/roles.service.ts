@@ -76,7 +76,7 @@ export class RolesService {
   }
 
   async findUserRoles(id: number) {
-    return await UserRole.findAll({where: {userId: id}});
+    return await UserRole.findAll({ where: { userId: id } });
   }
 
   async findAllUsersRoles() {

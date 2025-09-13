@@ -3,13 +3,14 @@ import {
   Column,
   Model,
   DataType,
-  ForeignKey, BelongsTo,
-} from 'sequelize-typescript';
-import {Client} from "../../clients/entities/client.entity";
-import {Instance} from "../../instances/entities/instance.entity";
+  ForeignKey,
+  BelongsTo,
+} from "sequelize-typescript";
+import { Client } from "../../clients/entities/client.entity";
+import { Instance } from "../../instances/entities/instance.entity";
 
 @Table({
-  tableName: 'segments',
+  tableName: "segments",
   timestamps: true,
   underscored: true,
 })
@@ -31,7 +32,7 @@ export class Segment extends Model<Segment> {
 
   @Column({
     type: DataType.STRING,
-    defaultValue: 'active',
+    defaultValue: "active",
   })
   status: string;
 
