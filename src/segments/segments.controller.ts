@@ -57,4 +57,10 @@ export class SegmentsController {
   ) {
     return this.segmentsService.findResults(+id, size ? +size : 100, after_key);
   }
+
+  @Get('mapping/:clientId')
+  @Permissions("instance.management")
+  getMapping(@Param('clientId') clientId: string) {
+    return this.segmentsService.getMapping(+clientId);
+  }
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Segment } from './entities/segment.entity';
 import { CreateSegmentDto } from './dto/create-segment.dto';
@@ -101,5 +101,59 @@ export class SegmentsService {
       ids: ids,
       after_key: aggregationResults.after_key ? btoa(JSON.stringify(aggregationResults.after_key)) : undefined,
     };
+  }
+
+  async getMapping(clientId: number): Promise<any> {
+    const indexPattern = `users-logs-${clientId}-*`;
+
+    // Get all indices matching the pattern
+    const indicesResponse = await this.osClient.cat.indices({
+      index: indexPattern,
+      format: 'json',
+      h: 'index',
+      s: 'index:desc' // Sort by index name descending
+    });
+
+    if (!indicesResponse.body || indicesResponse.body.length === 0) {
+      throw new NotFoundException(`No indices found for client ${clientId}`);
+    }
+
+    // The indices are sorted by name descending, so the first one is the latest
+    const latestIndex = indicesResponse.body[0].index;
+
+    // Get the mapping for the latest index
+    const mappingResponse = await this.osClient.indices.getMapping({
+      index: latestIndex,
+    });
+
+    const properties = mappingResponse.body[latestIndex].mappings.properties;
+
+    // Transform the properties into the format expected by the frontend
+    const formattedMapping = Object.keys(properties).map(key => {
+      const prop = properties[key];
+      let type = prop.type;
+      let choices;
+
+      if (prop.fields && prop.fields.keyword) {
+          type = 'text';
+      }
+
+      if (type === 'long' || type === 'integer') {
+          type = 'number';
+      } else if (type === 'date') {
+          type = 'date';
+      } else if (type === 'boolean') {
+          type = 'boolean';
+      }
+
+      return {
+        id: key,
+        label: key.charAt(0).toUpperCase() + key.slice(1),
+        type: type,
+        choices: choices
+      };
+    });
+
+    return formattedMapping;
   }
 }

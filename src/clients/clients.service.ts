@@ -5,7 +5,7 @@ import { Transaction } from "sequelize";
 import { Client as OsClient } from "@opensearch-project/opensearch";
 import { SettingsService } from "../settings/settings.service";
 import { OpensearchProvider } from "../opensearch/opensearch.provider";
-import { col, fn } from "sequelize";
+import { col, fn, Op } from "sequelize";
 
 @Injectable()
 export class ClientsService {
@@ -43,8 +43,8 @@ export class ClientsService {
     return client;
   }
 
-  async findAll() {
-    return await Client.findAll({
+  async findAll(user: any) {
+    const findOptions: any = {
       attributes: {
         include: [[fn("COUNT", col("instances.id")), "instancesCount"]],
       },
@@ -58,7 +58,18 @@ export class ClientsService {
       group: ["Client.id"],
       raw: false,
       nest: true,
-    });
+    };
+
+    if (user && !user.isSuperAdmin) {
+      const clientIds = user.permissions.map((p) => p.client);
+      findOptions.where = {
+        id: {
+          [Op.in]: clientIds,
+        },
+      };
+    }
+
+    return await Client.findAll(findOptions);
   }
 
   async findOne(id: number) {
