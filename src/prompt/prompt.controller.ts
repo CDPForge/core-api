@@ -1,4 +1,11 @@
-import { Controller, Post, Body, UseGuards, Req, BadRequestException } from "@nestjs/common";
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Req,
+  BadRequestException,
+} from "@nestjs/common";
 import { PromptService } from "./prompt.service";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 import { PermissionsGuard } from "../auth/permission.guard";
@@ -17,7 +24,10 @@ export class PromptController {
 
   @Post()
   @Permissions("prompt")
-  async create(@Req() req: any, @Body() promptData: PromptRequest): Promise<string> {
+  async create(
+    @Req() req: any,
+    @Body() promptData: PromptRequest,
+  ): Promise<string> {
     const user = req.user!.user as User;
     const { message, clientId } = promptData;
 
@@ -27,8 +37,10 @@ export class PromptController {
 
     // Verifica che l'utente abbia accesso al client specificato
     const userPermissions = req.user!.permissions || [];
-    const hasAccessToClient = userPermissions.some((perm: any) => perm.client === clientId);
-    
+    const hasAccessToClient = userPermissions.some(
+      (perm: any) => perm.client === clientId,
+    );
+
     if (!hasAccessToClient) {
       throw new BadRequestException("Access denied to the specified client");
     }
@@ -38,7 +50,10 @@ export class PromptController {
 
   @Post("clear-history")
   @Permissions("prompt")
-  async clearHistory(@Req() req: any, @Body() body: { clientId: number }): Promise<{ success: boolean }> {
+  async clearHistory(
+    @Req() req: any,
+    @Body() body: { clientId: number },
+  ): Promise<{ success: boolean }> {
     const user = req.user!.user as User;
     const { clientId } = body;
 
@@ -48,8 +63,10 @@ export class PromptController {
 
     // Verifica che l'utente abbia accesso al client specificato
     const userPermissions = req.user!.permissions || [];
-    const hasAccessToClient = userPermissions.some((perm: any) => perm.client === clientId);
-    
+    const hasAccessToClient = userPermissions.some(
+      (perm: any) => perm.client === clientId,
+    );
+
     if (!hasAccessToClient) {
       throw new BadRequestException("Access denied to the specified client");
     }
