@@ -28,8 +28,8 @@ export class ClientsController {
   }
 
   @Get()
-  findAll(@Req() req) {
-    return this.clientsService.findAll(req.user);
+  findAll() {
+    return this.clientsService.findAll();
   }
 
   @Get(":id")
