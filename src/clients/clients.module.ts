@@ -3,6 +3,7 @@ import { ClientsService } from "./clients.service";
 import { ClientsController } from "./clients.controller";
 import { SequelizeModule } from "@nestjs/sequelize";
 import { Client } from "./entities/client.entity";
+import { Instance } from "../instances/entities/instance.entity";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { SettingsModule } from "../settings/settings.module";
 import { SettingsService } from "../settings/settings.service";
@@ -12,7 +13,7 @@ import { PermissionsGuard } from "../auth/permission.guard";
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([Client]),
+    SequelizeModule.forFeature([Client, Instance]),
     SettingsModule,
     OpensearchModule,
   ],

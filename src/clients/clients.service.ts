@@ -61,6 +61,22 @@ export class ClientsService {
     });
   }
 
+  async findAllWithInstances() {
+    return await Client.findAll({
+      include: [
+        {
+          model: Instance,
+          attributes: ["id", "name", "description", "active"],
+          required: false,
+        },
+      ],
+      order: [
+        ["id", "ASC"],
+        ["instances", "name", "ASC"],
+      ],
+    });
+  }
+
   async findOne(id: number) {
     return await Client.findByPk(id, {
       attributes: {

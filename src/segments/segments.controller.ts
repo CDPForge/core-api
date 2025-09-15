@@ -12,6 +12,7 @@ import {
 import { SegmentsService } from "./segments.service";
 import { CreateSegmentDto } from "./dto/create-segment.dto";
 import { UpdateSegmentDto } from "./dto/update-segment.dto";
+import { PreviewSegmentDto } from "./dto/preview-segment.dto";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { PermissionsGuard } from "../auth/permission.guard";
 import { Permissions } from "../decorators/permissions.decorator";
@@ -25,6 +26,12 @@ export class SegmentsController {
   @Permissions("segments.management")
   create(@Body() createSegmentDto: CreateSegmentDto) {
     return this.segmentsService.create(createSegmentDto);
+  }
+
+  @Post("preview")
+  @Permissions("segments.management")
+  preview(@Body() previewDto: PreviewSegmentDto) {
+    return this.segmentsService.preview(previewDto);
   }
 
   @Get()

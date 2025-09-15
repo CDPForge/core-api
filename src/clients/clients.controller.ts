@@ -31,6 +31,11 @@ export class ClientsController {
     return this.clientsService.findAll();
   }
 
+  @Get("with-instances")
+  findAllWithInstances() {
+    return this.clientsService.findAllWithInstances();
+  }
+
   @Get(":id")
   findOne(@Param("id") id: string) {
     return this.clientsService.findOne(+id);

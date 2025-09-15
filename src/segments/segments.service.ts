@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { Segment } from "./entities/segment.entity";
 import { UpdateSegmentDto } from "./dto/update-segment.dto";
+import { PreviewSegmentDto } from "./dto/preview-segment.dto";
+import { PreviewResult } from "./interfaces/preview-result.interface";
 import { OpensearchProvider } from "../opensearch/opensearch.provider";
 import { Client } from "@opensearch-project/opensearch";
 
@@ -32,6 +34,32 @@ export class SegmentsService {
     return Segment.destroy({ where: { id } });
   }
 
+  private buildQueryWithInstanceFilter(
+    baseQuery: Record<string, any>,
+    instanceId?: number,
+  ): Record<string, any> {
+    if (!instanceId) {
+      return baseQuery;
+    }
+
+    // Add instance filter to the query
+    if (baseQuery.bool) {
+      if (!baseQuery.bool.must) {
+        baseQuery.bool.must = [];
+      }
+      baseQuery.bool.must.push({
+        term: { "instance.id": instanceId },
+      });
+      return baseQuery;
+    } else {
+      return {
+        bool: {
+          must: [baseQuery, { term: { "instance.id": instanceId } }],
+        },
+      };
+    }
+  }
+
   async findResults(id: number, size: number = 10, after_key?: string) {
     const segment: Segment | null = await this.findOne(id);
     if (!segment) {
@@ -39,10 +67,17 @@ export class SegmentsService {
     }
 
     const index = "users-logs-" + segment.get("client");
-    const queryBody: Record<string, any> = segment.get("query") as Record<
+    const baseQuery: Record<string, any> = segment.get("query") as Record<
       string,
       any
     >;
+    const instanceId = segment.get("instance") as number | null;
+
+    // Apply instance filtering if segment has an instance
+    const queryBody = this.buildQueryWithInstanceFilter(
+      baseQuery,
+      instanceId || undefined,
+    );
 
     const aggregationBody: {
       size: number;
@@ -108,6 +143,53 @@ export class SegmentsService {
         ? btoa(JSON.stringify(aggregationResults.after_key))
         : undefined,
     };
+  }
+
+  async preview(previewDto: PreviewSegmentDto): Promise<PreviewResult> {
+    const startTime = Date.now();
+    const { clientId, instanceId, query } = previewDto;
+
+    const index = `users-logs-${clientId}`;
+
+    // Build the query with optional instance filtering
+    const finalQuery = this.buildQueryWithInstanceFilter(query, instanceId);
+
+    try {
+      // Use cardinality aggregation to count unique device.id values
+      const response = await this.osClient.search({
+        index,
+        body: {
+          size: 0, // We don't need the actual documents, just the aggregation
+          query: finalQuery,
+          aggs: {
+            unique_devices: {
+              cardinality: {
+                field: "device.id",
+              },
+            },
+          },
+        },
+      });
+
+      const executionTime = Date.now() - startTime;
+
+      // Type-safe access to cardinality aggregation result
+      interface CardinalityAggregation {
+        value: number;
+      }
+
+      const cardinalityResult = response.body.aggregations
+        ?.unique_devices as CardinalityAggregation;
+      const count = cardinalityResult?.value || 0;
+
+      return {
+        estimatedCount: count,
+        executionTime,
+        hasMore: count > 10000, // Indicate if there might be more results than what we can efficiently count
+      };
+    } catch (error) {
+      throw new Error(`Preview calculation failed: ${error.message}`);
+    }
   }
 
   async getMapping(clientId: number) {
