@@ -32,7 +32,7 @@ export class SegmentsController {
     return this.segmentsService.create(createSegmentDto);
   }
 
-  @Get("preview")
+  @Post("preview")
   @Permissions({
     resourceType: ResourceType.INSTANCE,
     instanceIdParam: "instanceId",
@@ -89,11 +89,11 @@ export class SegmentsController {
     permissions: [{permission:"segments.management", level: PermissionLevel.EXECUTE}],
   })
   findResults(
-    @Param("id") id: string,
-    @Query("size") size?: string,
+    @Param("id") id: number,
+    @Query("size") size?: number,
     @Query("after_key") after_key?: string,
   ) {
-    return this.segmentsService.findResults(+id, size ? +size : 100, after_key);
+    return this.segmentsService.findResults(id, size ? size : 100, after_key);
   }
 
   @Get("mapping/:clientId")
@@ -102,7 +102,7 @@ export class SegmentsController {
     clientIdParam: "clientId",
     permissions: [{permission:"segments.management", level: PermissionLevel.READ}],
   })
-  getMapping(@Param("clientId") clientId: string) {
-    return this.segmentsService.getMapping(+clientId);
+  getMapping(@Param("clientId") clientId: number) {
+    return this.segmentsService.getMapping(clientId);
   }
 }

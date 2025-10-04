@@ -52,24 +52,24 @@ export class PermissionsGuard implements CanActivate {
       return true;
     }
 
-    const resourceId = await this.extractParam<any>(
+    const resourceId = await this.extractParam(
       request,
       requirement.resourceIdParam || 'id'
     );
 
-    const clientId = await this.extractParam<number>(
+    const clientId = parseInt(await this.extractParam(
       request,
       requirement.clientIdParam || 'client',
       requirement.resource,
       resourceId
-    );
+    ));
     
-    const instanceId = await this.extractParam<number>(
+    const instanceId = parseInt(await this.extractParam(
       request,
       requirement.instanceIdParam || 'instance',
       requirement.resource,
       resourceId
-    );
+    ));
 
     // Verifica i permessi
     return this.checkAccess(
@@ -84,12 +84,12 @@ export class PermissionsGuard implements CanActivate {
   /**
    * Estrae un parametro da URL params, query params o body
    */
-  private async extractParam<T>(request: any, paramName: string, Resource?: ModelStatic<Model>, resourceId?: any): Promise<T|undefined>  {
+  private async extractParam(request: any, paramName: string, Resource?: ModelStatic<Model>, resourceId?: any): Promise<any>  {
 
     if(Resource != null){
       const res = await Resource.findByPk(resourceId);
       if(!res) return undefined;
-      return res.get(paramName) as T;
+      return res.get(paramName);
     }
 
     // 1. Prova nei parametri URL (es: /clients/:clientId)
