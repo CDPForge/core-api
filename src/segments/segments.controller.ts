@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
 import { SegmentsService } from "./segments.service";
 import { CreateSegmentDto } from "./dto/create-segment.dto";
@@ -17,6 +18,8 @@ import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { PermissionsGuard } from "../auth/permission.guard";
 import { PermissionLevel, Permissions, ResourceType } from "../decorators/permissions.decorator";
 import { Segment } from "./entities/segment.entity";
+import { FilterByAccess } from "src/decorators/filter-by-access.decorator";
+import { AccessFilterInterceptor } from "src/interceptors/access-filter.interceptor";
 
 @Controller("segments")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -44,6 +47,11 @@ export class SegmentsController {
   }
 
   @Get()
+  @UseInterceptors(AccessFilterInterceptor)
+  @FilterByAccess({
+    permission: "segments.management",
+    level: PermissionLevel.READ
+  })
   findAll() {
     return this.segmentsService.findAll();
   }

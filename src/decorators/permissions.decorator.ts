@@ -3,9 +3,9 @@ import { ModelStatic } from "sequelize";
 import { SetMetadata} from '@nestjs/common';
 
 export enum ResourceType {
-  CLIENT = 'CLIENT',
-  INSTANCE = 'INSTANCE',
-  NONE = 'NONE'
+  CLIENT = 'client',
+  INSTANCE = 'instance',
+  NONE = 'none'
 }
 
 export enum PermissionLevel {

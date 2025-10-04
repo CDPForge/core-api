@@ -22,7 +22,7 @@ export class PermissionsGuard implements CanActivate {
     const user: {
       sub: string;
       user: Partial<User>;
-      permissions: { instance: number; permissions: {permission: string, level: number}[] }[];
+      permissions: { client: number, instance?: number; permissions: {permission: string, level: number}[] }[];
     } = request.user;
 
     // Controlla se l'endpoint richiede l'accesso da super-admin
@@ -72,7 +72,7 @@ export class PermissionsGuard implements CanActivate {
     ));
 
     // Verifica i permessi
-    return this.checkAccess(
+    return PermissionsGuard.checkAccess(
       user,
       requirement.resourceType,
       requirement.permissions,
@@ -110,7 +110,7 @@ export class PermissionsGuard implements CanActivate {
     return undefined;
   }
 
-  private async checkAccess(
+  public static async checkAccess(
       user: any,
       resourceType: ResourceType,
       requiredPermissions: {permission: string, level: string}[],
@@ -135,13 +135,13 @@ export class PermissionsGuard implements CanActivate {
       }
     }
 
-    private async hasInstanceAccess(
+    private static async hasInstanceAccess(
     permissions:{ client?: number, instance?: number; permissions: {permission: string, level: number}[] }[],
     instanceId: number,
     requiredPermissions: {permission: string, level: string}[]
   ): Promise<boolean> {
 
-    const clientId = (await Instance.findByPk(instanceId))?.id;
+    const clientId = (await Instance.findByPk(instanceId))?.get("client")!;
 
     const hasInstancePermissions = requiredPermissions.every((rp) => {
       return permissions.some(
@@ -156,7 +156,7 @@ export class PermissionsGuard implements CanActivate {
     return hasInstancePermissions || this.hasClientAccess(permissions, clientId, requiredPermissions);
   }
 
-  private hasClientAccess(
+  private static hasClientAccess(
     permissions: { client?: number, instance?: number; permissions: {permission: string, level: number}[] }[],
     clientId: number,
     requiredPermissions: {permission: string, level: string}[]
@@ -172,7 +172,7 @@ export class PermissionsGuard implements CanActivate {
     });
   }
 
-  private checkLevel(level: number, requiredLevel: string): boolean {
+  private static checkLevel(level: number, requiredLevel: string): boolean {
     switch (requiredLevel) {
       case 'READ':
         return [7,6,5,4].includes(level) 
