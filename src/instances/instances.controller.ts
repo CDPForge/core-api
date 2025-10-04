@@ -13,7 +13,11 @@ import { CreateInstanceDto } from "./dto/create-instance.dto";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Instance } from "./entities/instance.entity";
 import { PermissionsGuard } from "../auth/permission.guard";
-import { PermissionLevel, Permissions, ResourceType } from "../decorators/permissions.decorator";
+import {
+  PermissionLevel,
+  Permissions,
+  ResourceType,
+} from "../decorators/permissions.decorator";
 
 @Controller("instances")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -24,7 +28,9 @@ export class InstancesController {
   @Permissions({
     resourceType: ResourceType.CLIENT,
     clientIdParam: "client",
-    permissions: [{permission:"instance.management", level: PermissionLevel.WRITE}],
+    permissions: [
+      { permission: "instance.management", level: PermissionLevel.WRITE },
+    ],
   })
   create(@Body() createInstanceDto: CreateInstanceDto) {
     return this.instancesService.create(createInstanceDto);
@@ -39,7 +45,9 @@ export class InstancesController {
   @Permissions({
     resourceType: ResourceType.INSTANCE,
     instanceIdParam: "id",
-    permissions: [{permission:"instance.management", level: PermissionLevel.READ}],
+    permissions: [
+      { permission: "instance.management", level: PermissionLevel.READ },
+    ],
   })
   findOne(@Param("id") id: number) {
     return this.instancesService.findOne(id);
@@ -49,7 +57,9 @@ export class InstancesController {
   @Permissions({
     resourceType: ResourceType.INSTANCE,
     instanceIdParam: "id",
-    permissions: [{permission:"instance.management", level: PermissionLevel.WRITE}],
+    permissions: [
+      { permission: "instance.management", level: PermissionLevel.WRITE },
+    ],
   })
   update(
     @Param("id") id: number,
@@ -62,7 +72,9 @@ export class InstancesController {
   @Permissions({
     resourceType: ResourceType.INSTANCE,
     instanceIdParam: "id",
-    permissions: [{permission:"instance.management", level: PermissionLevel.WRITE}],
+    permissions: [
+      { permission: "instance.management", level: PermissionLevel.WRITE },
+    ],
   })
   remove(@Param("id") id: number) {
     return this.instancesService.remove(id);

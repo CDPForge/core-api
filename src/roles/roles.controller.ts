@@ -14,7 +14,11 @@ import { Role } from "./entities/role.entity";
 import { IsSuperAdmin } from "../decorators/is-super-admin.decorator";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { PermissionsGuard } from "../auth/permission.guard";
-import { PermissionLevel, ResourceType, Permissions } from "src/decorators/permissions.decorator";
+import {
+  PermissionLevel,
+  ResourceType,
+  Permissions,
+} from "src/decorators/permissions.decorator";
 
 @Controller("roles")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -61,8 +65,10 @@ export class RolesController {
 
   @Put("/user/:id")
   @Permissions({
-      resourceType: ResourceType.INSTANCE,
-      permissions: [{permission:"client.management", level: PermissionLevel.WRITE}],
+    resourceType: ResourceType.INSTANCE,
+    permissions: [
+      { permission: "client.management", level: PermissionLevel.WRITE },
+    ],
   })
   async addToUser(
     @Param("userid") id: number,
@@ -70,7 +76,12 @@ export class RolesController {
     @Body("client") client: number,
     @Body("roles") permission: number[],
   ) {
-    return await this.rolesService.addUserRoles(id, client, instance, permission);
+    return await this.rolesService.addUserRoles(
+      id,
+      client,
+      instance,
+      permission,
+    );
   }
   @Delete("/user/:id")
   @IsSuperAdmin()
@@ -86,7 +97,8 @@ export class RolesController {
   @IsSuperAdmin()
   async setUserRoles(
     @Param("userid") id: number,
-    @Body("rolesMap") rolesMap: { client:number, instance: number; roles: number[] }[],
+    @Body("rolesMap")
+    rolesMap: { client: number; instance: number; roles: number[] }[],
   ) {
     return await this.rolesService.setUserRoles(id, rolesMap);
   }

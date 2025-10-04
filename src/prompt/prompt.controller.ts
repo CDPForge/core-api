@@ -9,7 +9,11 @@ import {
 import { PromptService } from "./prompt.service";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 import { PermissionsGuard } from "../auth/permission.guard";
-import { PermissionLevel, Permissions, ResourceType } from "../decorators/permissions.decorator";
+import {
+  PermissionLevel,
+  Permissions,
+  ResourceType,
+} from "../decorators/permissions.decorator";
 import { User } from "../users/user.model";
 
 interface PromptRequest {
@@ -24,9 +28,9 @@ export class PromptController {
 
   @Post()
   @Permissions({
-      resourceType: ResourceType.CLIENT,
-      clientIdParam: "clientId",
-      permissions: [{permission:"prompt", level: PermissionLevel.EXECUTE}],
+    resourceType: ResourceType.CLIENT,
+    clientIdParam: "clientId",
+    permissions: [{ permission: "prompt", level: PermissionLevel.EXECUTE }],
   })
   async create(
     @Req() req: any,
@@ -56,7 +60,7 @@ export class PromptController {
   @Permissions({
     resourceType: ResourceType.CLIENT,
     clientIdParam: "clientId",
-    permissions: [{permission:"prompt", level: PermissionLevel.EXECUTE}],
+    permissions: [{ permission: "prompt", level: PermissionLevel.EXECUTE }],
   })
   async clearHistory(
     @Req() req: any,

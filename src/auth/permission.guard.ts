@@ -3,10 +3,14 @@ import {
   Injectable,
   CanActivate,
   ExecutionContext,
-  ForbiddenException
+  ForbiddenException,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { AccessRequirement, PERMISSIONS_KEY, ResourceType } from "../decorators/permissions.decorator";
+import {
+  AccessRequirement,
+  PERMISSIONS_KEY,
+  ResourceType,
+} from "../decorators/permissions.decorator";
 import { IS_SUPER_ADMIN_KEY } from "../decorators/is-super-admin.decorator";
 import { User } from "../users/user.model";
 import { Instance } from "src/instances/entities/instance.entity";
@@ -22,7 +26,11 @@ export class PermissionsGuard implements CanActivate {
     const user: {
       sub: string;
       user: Partial<User>;
-      permissions: { client: number, instance?: number; permissions: {permission: string, level: number}[] }[];
+      permissions: {
+        client: number;
+        instance?: number;
+        permissions: { permission: string; level: number }[];
+      }[];
     } = request.user;
 
     // Controlla se l'endpoint richiede l'accesso da super-admin
@@ -45,7 +53,7 @@ export class PermissionsGuard implements CanActivate {
 
     const requirement = this.reflector.get<AccessRequirement>(
       PERMISSIONS_KEY,
-      context.getHandler()
+      context.getHandler(),
     );
 
     if (!requirement || requirement.resourceType === ResourceType.NONE) {
@@ -54,22 +62,26 @@ export class PermissionsGuard implements CanActivate {
 
     const resourceId = await this.extractParam(
       request,
-      requirement.resourceIdParam || 'id'
+      requirement.resourceIdParam || "id",
     );
 
-    const clientId = parseInt(await this.extractParam(
-      request,
-      requirement.clientIdParam || 'client',
-      requirement.resource,
-      resourceId
-    ));
-    
-    const instanceId = parseInt(await this.extractParam(
-      request,
-      requirement.instanceIdParam || 'instance',
-      requirement.resource,
-      resourceId
-    ));
+    const clientId = parseInt(
+      await this.extractParam(
+        request,
+        requirement.clientIdParam || "client",
+        requirement.resource,
+        resourceId,
+      ),
+    );
+
+    const instanceId = parseInt(
+      await this.extractParam(
+        request,
+        requirement.instanceIdParam || "instance",
+        requirement.resource,
+        resourceId,
+      ),
+    );
 
     // Verifica i permessi
     return PermissionsGuard.checkAccess(
@@ -77,18 +89,22 @@ export class PermissionsGuard implements CanActivate {
       requirement.resourceType,
       requirement.permissions,
       clientId,
-      instanceId
+      instanceId,
     );
   }
 
   /**
    * Estrae un parametro da URL params, query params o body
    */
-  private async extractParam(request: any, paramName: string, Resource?: ModelStatic<Model>, resourceId?: any): Promise<any>  {
-
-    if(Resource != null){
+  private async extractParam(
+    request: any,
+    paramName: string,
+    Resource?: ModelStatic<Model>,
+    resourceId?: any,
+  ): Promise<any> {
+    if (Resource != null) {
       const res = await Resource.findByPk(resourceId);
-      if(!res) return undefined;
+      if (!res) return undefined;
       return res.get(paramName);
     }
 
@@ -111,75 +127,103 @@ export class PermissionsGuard implements CanActivate {
   }
 
   public static async checkAccess(
-      user: any,
-      resourceType: ResourceType,
-      requiredPermissions: {permission: string, level: string}[],
-      clientId?: number,
-      instanceId?: number
-    ): Promise<boolean> {
-      if (user.isSuperAdmin) return true;
-
-      if(resourceType == ResourceType.INSTANCE && !instanceId) resourceType = ResourceType.CLIENT;
-
-      switch (resourceType) {
-        case ResourceType.INSTANCE:
-          if (!instanceId) throw new ForbiddenException('Instance ID is required');
-          return this.hasInstanceAccess(user.permissions, instanceId, requiredPermissions);
-
-        case ResourceType.CLIENT:
-          if (!clientId) throw new ForbiddenException('Client ID is required');
-          return this.hasClientAccess(user.permissions, clientId, requiredPermissions);
-          
-        default:
-          return true;
-      }
-    }
-
-    private static async hasInstanceAccess(
-    permissions:{ client?: number, instance?: number; permissions: {permission: string, level: number}[] }[],
-    instanceId: number,
-    requiredPermissions: {permission: string, level: string}[]
+    user: any,
+    resourceType: ResourceType,
+    requiredPermissions: { permission: string; level: string }[],
+    clientId?: number,
+    instanceId?: number,
   ): Promise<boolean> {
+    if (user.isSuperAdmin) return true;
 
+    if (resourceType == ResourceType.INSTANCE && !instanceId)
+      resourceType = ResourceType.CLIENT;
+
+    switch (resourceType) {
+      case ResourceType.INSTANCE:
+        if (!instanceId)
+          throw new ForbiddenException("Instance ID is required");
+        return this.hasInstanceAccess(
+          user.permissions,
+          instanceId,
+          requiredPermissions,
+        );
+
+      case ResourceType.CLIENT:
+        if (!clientId) throw new ForbiddenException("Client ID is required");
+        return this.hasClientAccess(
+          user.permissions,
+          clientId,
+          requiredPermissions,
+        );
+
+      default:
+        return true;
+    }
+  }
+
+  private static async hasInstanceAccess(
+    permissions: {
+      client?: number;
+      instance?: number;
+      permissions: { permission: string; level: number }[];
+    }[],
+    instanceId: number,
+    requiredPermissions: { permission: string; level: string }[],
+  ): Promise<boolean> {
     const clientId = (await Instance.findByPk(instanceId))?.get("client")!;
 
     const hasInstancePermissions = requiredPermissions.every((rp) => {
-      return permissions.some(
-        (p) => {
-          return p.instance === instanceId && p.permissions.some(ip => {
-            return ip.permission === rp.permission && this.checkLevel(ip.level, rp.level)
-          });
-        }
-      );
+      return permissions.some((p) => {
+        return (
+          p.instance === instanceId &&
+          p.permissions.some((ip) => {
+            return (
+              ip.permission === rp.permission &&
+              this.checkLevel(ip.level, rp.level)
+            );
+          })
+        );
+      });
     });
-        
-    return hasInstancePermissions || this.hasClientAccess(permissions, clientId, requiredPermissions);
+
+    return (
+      hasInstancePermissions ||
+      this.hasClientAccess(permissions, clientId, requiredPermissions)
+    );
   }
 
   private static hasClientAccess(
-    permissions: { client?: number, instance?: number; permissions: {permission: string, level: number}[] }[],
+    permissions: {
+      client?: number;
+      instance?: number;
+      permissions: { permission: string; level: number }[];
+    }[],
     clientId: number,
-    requiredPermissions: {permission: string, level: string}[]
+    requiredPermissions: { permission: string; level: string }[],
   ): boolean {
     return requiredPermissions.every((rp) => {
-      return permissions.some(
-        (p) => {
-          return p.client === clientId && p.permissions.some(ip => {
-            return ip.permission === rp.permission && this.checkLevel(ip.level, rp.level)
-          });
-        }
-      );
+      return permissions.some((p) => {
+        return (
+          p.client === clientId &&
+          p.permissions.some((ip) => {
+            return (
+              ip.permission === rp.permission &&
+              this.checkLevel(ip.level, rp.level)
+            );
+          })
+        );
+      });
     });
   }
 
   private static checkLevel(level: number, requiredLevel: string): boolean {
     switch (requiredLevel) {
-      case 'READ':
-        return [7,6,5,4].includes(level) 
-      case 'WRITE':
-        return [7,6].includes(level) 
-      case 'EXECUTE':
-        return [7,5].includes(level) 
+      case "READ":
+        return [7, 6, 5, 4].includes(level);
+      case "WRITE":
+        return [7, 6].includes(level);
+      case "EXECUTE":
+        return [7, 5].includes(level);
       default:
         return false;
     }

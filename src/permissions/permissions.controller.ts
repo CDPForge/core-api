@@ -4,7 +4,11 @@ import { Response } from "express";
 import { InstancesService } from "../instances/instances.service";
 import { Instance } from "../instances/entities/instance.entity";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
-import { PermissionLevel, ResourceType, Permissions } from "src/decorators/permissions.decorator";
+import {
+  PermissionLevel,
+  ResourceType,
+  Permissions,
+} from "src/decorators/permissions.decorator";
 import { Permission } from "./entities/permission.entity";
 
 @Controller("permissions")
@@ -48,7 +52,7 @@ export class PermissionsController {
             "The instance specified is not the one of the client specified",
           );
       }
-      client = instanceEntity!.client;
+      client = instanceEntity.client;
     }
 
     const permissions = await this.permissionsService.findUserPermissions(

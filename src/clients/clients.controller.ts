@@ -14,7 +14,11 @@ import { UpdateClientDto } from "./dto/update-client.dto";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { PermissionsGuard } from "../auth/permission.guard";
 import { IsSuperAdmin } from "../decorators/is-super-admin.decorator";
-import { PermissionLevel, ResourceType, Permissions } from "src/decorators/permissions.decorator";
+import {
+  PermissionLevel,
+  ResourceType,
+  Permissions,
+} from "src/decorators/permissions.decorator";
 
 @Controller("clients")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -39,9 +43,11 @@ export class ClientsController {
 
   @Get(":id")
   @Permissions({
-      resourceType: ResourceType.CLIENT,
-      clientIdParam: "id",
-      permissions: [{permission:"client.management", level: PermissionLevel.READ}],
+    resourceType: ResourceType.CLIENT,
+    clientIdParam: "id",
+    permissions: [
+      { permission: "client.management", level: PermissionLevel.READ },
+    ],
   })
   findOne(@Param("id") id: string) {
     return this.clientsService.findOne(+id);
@@ -49,9 +55,11 @@ export class ClientsController {
 
   @Patch(":id")
   @Permissions({
-      resourceType: ResourceType.CLIENT,
-      clientIdParam: "id",
-      permissions: [{permission:"client.management", level: PermissionLevel.WRITE}],
+    resourceType: ResourceType.CLIENT,
+    clientIdParam: "id",
+    permissions: [
+      { permission: "client.management", level: PermissionLevel.WRITE },
+    ],
   })
   update(@Param("id") id: string, @Body() updateClientDto: UpdateClientDto) {
     return this.clientsService.update(+id, updateClientDto);
@@ -59,9 +67,11 @@ export class ClientsController {
 
   @Delete(":id")
   @Permissions({
-      resourceType: ResourceType.CLIENT,
-      clientIdParam: "id",
-      permissions: [{permission:"client.management", level: PermissionLevel.WRITE}],
+    resourceType: ResourceType.CLIENT,
+    clientIdParam: "id",
+    permissions: [
+      { permission: "client.management", level: PermissionLevel.WRITE },
+    ],
   })
   remove(@Param("id") id: string) {
     return this.clientsService.remove(+id);

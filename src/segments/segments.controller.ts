@@ -16,7 +16,11 @@ import { UpdateSegmentDto } from "./dto/update-segment.dto";
 import { PreviewSegmentDto } from "./dto/preview-segment.dto";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { PermissionsGuard } from "../auth/permission.guard";
-import { PermissionLevel, Permissions, ResourceType } from "../decorators/permissions.decorator";
+import {
+  PermissionLevel,
+  Permissions,
+  ResourceType,
+} from "../decorators/permissions.decorator";
 import { Segment } from "./entities/segment.entity";
 import { FilterByAccess } from "src/decorators/filter-by-access.decorator";
 import { AccessFilterInterceptor } from "src/interceptors/access-filter.interceptor";
@@ -29,7 +33,9 @@ export class SegmentsController {
   @Post()
   @Permissions({
     resourceType: ResourceType.INSTANCE,
-    permissions: [{permission:"segments.management", level: PermissionLevel.WRITE}],
+    permissions: [
+      { permission: "segments.management", level: PermissionLevel.WRITE },
+    ],
   })
   create(@Body() createSegmentDto: CreateSegmentDto) {
     return this.segmentsService.create(createSegmentDto);
@@ -40,7 +46,9 @@ export class SegmentsController {
     resourceType: ResourceType.INSTANCE,
     instanceIdParam: "instanceId",
     clientIdParam: "clientId",
-    permissions: [{permission:"segments.management", level: PermissionLevel.EXECUTE}],
+    permissions: [
+      { permission: "segments.management", level: PermissionLevel.EXECUTE },
+    ],
   })
   preview(@Body() previewDto: PreviewSegmentDto) {
     return this.segmentsService.preview(previewDto);
@@ -50,7 +58,7 @@ export class SegmentsController {
   @UseInterceptors(AccessFilterInterceptor)
   @FilterByAccess({
     permission: "segments.management",
-    level: PermissionLevel.READ
+    level: PermissionLevel.READ,
   })
   findAll() {
     return this.segmentsService.findAll();
@@ -61,7 +69,9 @@ export class SegmentsController {
     resourceType: ResourceType.INSTANCE,
     resource: Segment,
     resourceIdParam: "id",
-    permissions: [{permission:"segments.management", level: PermissionLevel.READ}],
+    permissions: [
+      { permission: "segments.management", level: PermissionLevel.READ },
+    ],
   })
   findOne(@Param("id") id: string) {
     return this.segmentsService.findOne(+id);
@@ -72,7 +82,9 @@ export class SegmentsController {
     resourceType: ResourceType.INSTANCE,
     resource: Segment,
     resourceIdParam: "id",
-    permissions: [{permission:"segments.management", level: PermissionLevel.WRITE}],
+    permissions: [
+      { permission: "segments.management", level: PermissionLevel.WRITE },
+    ],
   })
   update(@Param("id") id: string, @Body() updateSegmentDto: UpdateSegmentDto) {
     return this.segmentsService.update(+id, updateSegmentDto);
@@ -83,7 +95,9 @@ export class SegmentsController {
     resourceType: ResourceType.INSTANCE,
     resource: Segment,
     resourceIdParam: "id",
-    permissions: [{permission:"segments.management", level: PermissionLevel.WRITE}],
+    permissions: [
+      { permission: "segments.management", level: PermissionLevel.WRITE },
+    ],
   })
   remove(@Param("id") id: string) {
     return this.segmentsService.remove(+id);
@@ -94,7 +108,9 @@ export class SegmentsController {
     resourceType: ResourceType.INSTANCE,
     resource: Segment,
     resourceIdParam: "id",
-    permissions: [{permission:"segments.management", level: PermissionLevel.EXECUTE}],
+    permissions: [
+      { permission: "segments.management", level: PermissionLevel.EXECUTE },
+    ],
   })
   findResults(
     @Param("id") id: number,
@@ -108,7 +124,9 @@ export class SegmentsController {
   @Permissions({
     resourceType: ResourceType.CLIENT,
     clientIdParam: "clientId",
-    permissions: [{permission:"segments.management", level: PermissionLevel.READ}],
+    permissions: [
+      { permission: "segments.management", level: PermissionLevel.READ },
+    ],
   })
   getMapping(@Param("clientId") clientId: number) {
     return this.segmentsService.getMapping(clientId);

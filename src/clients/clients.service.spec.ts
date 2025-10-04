@@ -298,8 +298,8 @@ describe("ClientsService", () => {
       const result = await service.findAllWithInstances();
 
       expect(result[0].instances).toHaveLength(2);
-      expect(result[0].instances[0]).not.toHaveProperty("description");
-      expect(result[0].instances[1].description).toBeNull();
+      expect(result[0].instances?.[0]).not.toHaveProperty("description");
+      expect(result[0].instances?.[1]?.description).toBeNull();
     });
   });
 
