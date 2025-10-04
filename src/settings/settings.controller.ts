@@ -10,12 +10,14 @@ import {
 import { SettingsService } from "./settings.service";
 import { CreateSettingDto } from "./dto/create-setting.dto";
 import { UpdateSettingDto } from "./dto/update-setting.dto";
+import { IsSuperAdmin } from "src/decorators/is-super-admin.decorator";
 
 @Controller("settings")
 export class SettingsController {
   constructor(private readonly settingsService: SettingsService) {}
 
   @Post()
+  @IsSuperAdmin()
   create(@Body() createSettingDto: CreateSettingDto) {
     return this.settingsService.create(createSettingDto);
   }
@@ -31,11 +33,13 @@ export class SettingsController {
   }
 
   @Patch(":id")
+  @IsSuperAdmin()
   update(@Param("id") id: string, @Body() updateSettingDto: UpdateSettingDto) {
     return this.settingsService.update(+id, updateSettingDto);
   }
 
   @Delete(":id")
+  @IsSuperAdmin()
   remove(@Param("id") id: string) {
     return this.settingsService.remove(+id);
   }

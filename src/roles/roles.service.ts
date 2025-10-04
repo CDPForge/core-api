@@ -26,13 +26,17 @@ export class RolesService {
     return `This action removes a #${id} role`;
   }
 
-  async addUserRoles(userid: number, instance: number, roles: number[]) {
-    const i = await this.instancesService.findOne(instance);
-
+  async addUserRoles(userid: number, client:number, instance: number | undefined, roles: number[]) {
+    if(instance){
+      const i = await this.instancesService.findOne(instance);
+      if(i) {
+        client = i.get("client")
+      }
+    }
     const promises = roles.map((r) =>
       UserRole.upsert({
         userId: userid,
-        clientId: i!.get("client"),
+        clientId: client,
         instanceId: instance,
         roleId: r,
       }),
@@ -60,7 +64,7 @@ export class RolesService {
 
   async setUserRoles(
     userid: number,
-    rolesMap: { instance: number; roles: number[] }[],
+    rolesMap: { client:number, instance?: number; roles: number[] }[],
   ) {
     await UserRole.destroy({
       where: {
@@ -69,7 +73,7 @@ export class RolesService {
     });
 
     const promises = rolesMap.map((r) => {
-      return this.addUserRoles(userid, r.instance, r.roles);
+      return this.addUserRoles(userid, r.client, r.instance, r.roles);
     });
 
     return await Promise.all(promises);

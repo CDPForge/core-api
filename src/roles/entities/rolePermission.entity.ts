@@ -31,6 +31,12 @@ export class RolePermission extends Model<RolePermission> {
   })
   permissionId: number;
 
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+  })
+  level: number;
+
   // Definisce le relazioni `belongs-to`
   @BelongsTo(() => Role)
   role: Role;

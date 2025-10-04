@@ -4,6 +4,8 @@ import { Response } from "express";
 import { InstancesService } from "../instances/instances.service";
 import { Instance } from "../instances/entities/instance.entity";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { PermissionLevel, ResourceType, Permissions } from "src/decorators/permissions.decorator";
+import { Permission } from "./entities/permission.entity";
 
 @Controller("permissions")
 @UseGuards(JwtAuthGuard)

@@ -36,12 +36,14 @@ export class AuthService {
     };
     delete payloadRefresh.user.password;
     const instances = await this.instanceService.findAll();
-
-    const permissionsP = instances.map((instance) => {
+    let allvalues = instances.map( i => ({ instance: i.id, client: i.client}));
+    const clients = [...new Set(instances.map((instance) => instance.get("client")))];
+    allvalues = allvalues.concat(clients.map(c => ({ client: c, instance: null})));
+    const permissionsP = allvalues.map((v) => {
       return this.permissionService.findUserPermissions(
         user.id,
-        instance.client,
-        instance.id,
+        v.client,
+        v.instance,
       );
     });
 
@@ -51,9 +53,9 @@ export class AuthService {
       .map((permission, idx) => {
         if (permission.length > 0) {
           return {
-            client: instances[idx].get("client"),
-            instance: instances[idx].id,
-            permissions: permission.map((p) => p.get("name")),
+            client: allvalues[idx].client,
+            instance: allvalues[idx].instance,
+            permissions: permission.map((p) => ({permission: p.permission, level: p.level})),
           };
         } else {
           return null;

@@ -13,7 +13,7 @@ import { CreateInstanceDto } from "./dto/create-instance.dto";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Instance } from "./entities/instance.entity";
 import { PermissionsGuard } from "../auth/permission.guard";
-import { Permissions } from "../decorators/permissions.decorator";
+import { PermissionLevel, Permissions, ResourceType } from "../decorators/permissions.decorator";
 
 @Controller("instances")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -21,7 +21,11 @@ export class InstancesController {
   constructor(private readonly instancesService: InstancesService) {}
 
   @Post()
-  @Permissions("instance.management")
+  @Permissions({
+    resourceType: ResourceType.CLIENT,
+    clientIdParam: "client",
+    permissions: [{permission:"instance.management", level: PermissionLevel.WRITE}],
+  })
   create(@Body() createInstanceDto: CreateInstanceDto) {
     return this.instancesService.create(createInstanceDto);
   }
@@ -32,12 +36,21 @@ export class InstancesController {
   }
 
   @Get(":id")
+  @Permissions({
+    resourceType: ResourceType.INSTANCE,
+    instanceIdParam: "id",
+    permissions: [{permission:"instance.management", level: PermissionLevel.READ}],
+  })
   findOne(@Param("id") id: number) {
     return this.instancesService.findOne(id);
   }
 
   @Patch(":id")
-  @Permissions("instance.management")
+  @Permissions({
+    resourceType: ResourceType.INSTANCE,
+    instanceIdParam: "id",
+    permissions: [{permission:"instance.management", level: PermissionLevel.WRITE}],
+  })
   update(
     @Param("id") id: number,
     @Body() updateInstanceDto: Partial<Instance>,
@@ -46,7 +59,11 @@ export class InstancesController {
   }
 
   @Delete(":id")
-  @Permissions("instance.management")
+  @Permissions({
+    resourceType: ResourceType.INSTANCE,
+    instanceIdParam: "id",
+    permissions: [{permission:"instance.management", level: PermissionLevel.WRITE}],
+  })
   remove(@Param("id") id: number) {
     return this.instancesService.remove(id);
   }

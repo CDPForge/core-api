@@ -55,13 +55,21 @@ export class PermissionsService {
           include: [
             {
               model: Permission,
-              through: { attributes: [] },
+              through: { attributes: ['level'] },
             },
           ],
         },
       ],
     });
 
-    return user?.get("roles")?.flatMap((role) => role.get("permissions")) || [];
+    // Usa toJSON() per ottenere tutti i dati incluse le associazioni
+    const userData = user?.toJSON() as any;
+
+    return userData?.roles?.flatMap((role: any) =>
+      role.permissions?.map((permission: any) => ({
+        permission: permission.name,
+        level: permission.RolePermission?.level
+      }))
+    ) || [];
   }
 }
