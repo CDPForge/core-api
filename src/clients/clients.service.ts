@@ -30,13 +30,13 @@ export class ClientsService {
 
     const indexString = indexTemplate.replaceAll(
       "${client_id}",
-      client.id.toString(),
+      (client.id as number).toString(),
     );
-    const indexBody = JSON.parse(indexString);
+    const indexBody = JSON.parse(indexString) as Record<string, unknown>;
 
     //TODO: potremmo essere sotto transaction qui... creiamo l'indice anche in caso di rollback
     await this.osClient.indices.create({
-      index: `users-logs-${client.id}-000001`,
+      index: `users-logs-${client.id as number}-000001`,
       body: indexBody,
     });
 

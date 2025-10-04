@@ -35,7 +35,7 @@ export class InstallService {
 
       await this.instancesService.create(
         {
-          client: client.id,
+          client: client.id as number,
           description: installDto.instanceDescription,
         },
         { transaction },

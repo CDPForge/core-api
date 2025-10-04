@@ -3,7 +3,6 @@ import {
   ExecutionContext,
   Injectable,
   NestInterceptor,
-  SetMetadata,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { map, Observable } from "rxjs";
@@ -13,15 +12,14 @@ import {
   FilterConfig,
 } from "src/decorators/filter-by-access.decorator";
 import { ResourceType } from "src/decorators/permissions.decorator";
+import { User } from "src/users/user.model";
+import { Request } from "express";
 
 @Injectable()
 export class AccessFilterInterceptor implements NestInterceptor {
   constructor(private reflector: Reflector) {}
 
-  async intercept(
-    context: ExecutionContext,
-    next: CallHandler,
-  ): Promise<Observable<any>> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const config = this.reflector.get<FilterConfig>(
       FILTER_BY_ACCESS_KEY,
       context.getHandler(),
@@ -34,11 +32,15 @@ export class AccessFilterInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    const request = context.switchToHttp().getRequest();
-    const user = request.user;
+    const request = context.switchToHttp().getRequest<Request>();
+    const user = request.user as {
+      sub: string;
+      user: Partial<User>;
+      permissions: unknown[];
+    };
 
     // Se è super admin, non filtrare
-    if (user.isSuperAdmin) {
+    if (user.user.isSuperAdmin) {
       return next.handle();
     }
 
@@ -47,24 +49,42 @@ export class AccessFilterInterceptor implements NestInterceptor {
       .pipe(map((data) => this.filterByAccess(data, user, config)));
   }
 
-  private async filterByAccess(data: any, user: any, config: FilterConfig) {
+  private async filterByAccess(
+    data: unknown,
+    user: unknown,
+    config: FilterConfig,
+  ): Promise<unknown> {
     if (Array.isArray(data)) {
       const dataFilter = await Promise.all(
-        data.map((item) => this.hasAccessToItem(item, user, config)),
+        data.map((item) =>
+          this.hasAccessToItem(
+            item as Record<string, unknown> & {
+              get?: (key: string) => unknown;
+            },
+            user,
+            config,
+          ),
+        ),
       );
       return data.filter((i, idx) => dataFilter[idx]);
     }
 
-    return (await this.hasAccessToItem(data, user, config)) ? data : null;
+    return (await this.hasAccessToItem(
+      data as Record<string, unknown> & { get?: (key: string) => unknown },
+      user,
+      config,
+    ))
+      ? data
+      : null;
   }
 
   private async hasAccessToItem(
-    item: any,
-    user,
+    item: Record<string, unknown> & { get?: (key: string) => unknown },
+    user: unknown,
     config: FilterConfig,
   ): Promise<boolean> {
-    const i = item[config.instanceParam!] || item.get(config.instanceParam);
-    const c = item[config.clientParam!] || item.get(config.clientParam);
+    const i = item[config.instanceParam!] || item.get?.(config.instanceParam!);
+    const c = item[config.clientParam!] || item.get?.(config.clientParam!);
 
     if (i == null && c == null) {
       return false;
@@ -72,18 +92,18 @@ export class AccessFilterInterceptor implements NestInterceptor {
 
     if (i != null) {
       return await PermissionsGuard.checkAccess(
-        user,
+        user as Parameters<typeof PermissionsGuard.checkAccess>[0],
         ResourceType.INSTANCE,
         [config],
-        c,
-        i,
+        c as number,
+        i as number,
       );
     } else {
       return await PermissionsGuard.checkAccess(
-        user,
+        user as Parameters<typeof PermissionsGuard.checkAccess>[0],
         ResourceType.CLIENT,
         [config],
-        c,
+        c as number,
       );
     }
   }

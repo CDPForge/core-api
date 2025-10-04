@@ -1,7 +1,6 @@
 import { Controller, Get, Param } from "@nestjs/common";
 import { PluginsService } from "./plugins.service";
 import { Plugin } from "./plugin.model";
-import { IsSuperAdmin } from "src/decorators/is-super-admin.decorator";
 
 @Controller("plugins") // Definisce il percorso base per gli endpoint dei plugin
 export class PluginsController {

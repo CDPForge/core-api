@@ -35,7 +35,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
     CacheModule.registerAsync({
       isGlobal: true, // Rende il modulo disponibile globalmente
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => {
+      useFactory: (configService: ConfigService) => {
         return {
           stores: [
             createKeyv(

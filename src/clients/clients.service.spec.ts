@@ -5,6 +5,7 @@ import { Client } from "./entities/client.entity";
 import { Instance } from "../instances/entities/instance.entity";
 import { OpensearchProvider } from "../opensearch/opensearch.provider";
 import { SettingsService } from "../settings/settings.service";
+import { Transaction } from "sequelize";
 
 const mockClient = {
   id: 1,
@@ -48,12 +49,14 @@ const mockClientModel = {
   destroy: jest.fn().mockResolvedValue(1),
 };
 
+const mockOpensearchClient = {
+  indices: {
+    create: jest.fn().mockResolvedValue({ acknowledged: true }),
+  },
+};
+
 const mockOpensearchProvider = {
-  getClient: jest.fn().mockReturnValue({
-    indices: {
-      create: jest.fn().mockResolvedValue({ acknowledged: true }),
-    },
-  }),
+  getClient: jest.fn().mockReturnValue(mockOpensearchClient),
 };
 
 const mockSettingsService = {
@@ -319,8 +322,7 @@ describe("ClientsService", () => {
       );
       expect(mockSettingsService.get).toHaveBeenCalledWith("os.indexsetting");
 
-      const mockOsClient = mockOpensearchProvider.getClient();
-      expect(mockOsClient.indices.create).toHaveBeenCalledWith({
+      expect(mockOpensearchClient.indices.create).toHaveBeenCalledWith({
         index: `users-logs-${createdClient.id}-000001`,
         body: { settings: { number_of_shards: 1 } },
       });
@@ -344,8 +346,7 @@ describe("ClientsService", () => {
 
       await service.create(clientData);
 
-      const mockOsClient = mockOpensearchProvider.getClient();
-      expect(mockOsClient.indices.create).toHaveBeenCalledWith({
+      expect(mockOpensearchClient.indices.create).toHaveBeenCalledWith({
         index: "users-logs-123-000001",
         body: { settings: { client_id: "123" } },
       });
@@ -424,7 +425,7 @@ describe("ClientsService", () => {
 
     it("should handle update with transaction", async () => {
       const updateData = { name: "Updated Client" };
-      const transaction = {} as any;
+      const transaction = {} as Transaction;
 
       await service.update(1, updateData, { transaction });
 
@@ -449,7 +450,7 @@ describe("ClientsService", () => {
     });
 
     it("should handle remove with transaction", async () => {
-      const transaction = {} as any;
+      const transaction = {} as Transaction;
 
       await service.remove(1, { transaction });
 

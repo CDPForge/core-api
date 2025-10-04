@@ -22,7 +22,10 @@ export class LogsController {
       { permission: "instance.management", level: PermissionLevel.WRITE },
     ],
   })
-  async get(@Query() query: any | null, @Res() response: Response) {
+  async get(
+    @Query() query: { client: number } & Record<string, unknown>,
+    @Res() response: Response,
+  ) {
     if (query.client == null) return response.sendStatus(400);
     return response.json(await this.logsService.getLogs(query));
   }

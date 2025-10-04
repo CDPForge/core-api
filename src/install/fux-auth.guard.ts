@@ -1,10 +1,5 @@
 // guards/only-empty-users.guard.ts
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  ForbiddenException,
-} from "@nestjs/common";
+import { CanActivate, Injectable, ForbiddenException } from "@nestjs/common";
 import { UsersService } from "../users/users.service";
 import { ClientsService } from "../clients/clients.service";
 import { InstancesService } from "../instances/instances.service";
@@ -17,7 +12,7 @@ export class FuxAuthGuard implements CanActivate {
     private readonly instancesService: InstancesService,
   ) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  async canActivate(): Promise<boolean> {
     const userCount = await this.usersService.count();
     const clientsCount = await this.clientsService.count();
     const instancesCount = await this.instancesService.count();

@@ -9,14 +9,13 @@ import { ConfigService } from "@nestjs/config";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
-import { CompiledStateGraph } from "@langchain/langgraph";
+import { StateDefinition, StateType } from "@langchain/langgraph";
 import { Cache, CACHE_MANAGER } from "@nestjs/cache-manager";
 import { User } from "../users/user.model";
 import {
   SystemMessage,
   HumanMessage,
   AIMessage,
-  ToolMessage,
   BaseMessage,
 } from "@langchain/core/messages";
 
@@ -25,7 +24,7 @@ export class PromptService
   implements OnModuleInit, OnModuleDestroy, OnApplicationShutdown
 {
   private client: MultiServerMCPClient;
-  private agent: CompiledStateGraph<any, any>;
+  private agent: ReturnType<typeof createReactAgent>;
   constructor(
     private configService: ConfigService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -152,15 +151,17 @@ IMPORTANTE: Usa SEMPRE il formato JSON sopra indicato, mai testo semplice.
       const response = (await Promise.race([
         this.agent.invoke({ messages }),
         timeoutPromise,
-      ])) as any;
+      ])) as StateType<StateDefinition>;
 
       console.log(`✅ Agent response received, processing...`);
-      console.log(`Response messages count: ${response.messages?.length || 0}`);
+      console.log(
+        `Response messages count: ${(response.messages as BaseMessage[])?.length || 0}`,
+      );
 
       // Debug: mostra tutti i messaggi generati dall'agent
       console.log(
         `📋 All response messages:`,
-        response.messages?.map((msg, idx) => ({
+        (response.messages as BaseMessage[])?.map((msg, idx) => ({
           index: idx,
           type: msg.lc_id?.[2] || "Unknown",
           contentPreview:
@@ -172,8 +173,10 @@ IMPORTANTE: Usa SEMPRE il formato JSON sopra indicato, mai testo semplice.
 
       // Prendiamo l'ULTIMO AIMessage, non il primo
       // L'agent può generare più AIMessage durante l'esecuzione
-      const aiMessages = response.messages.filter(
-        (msg) =>
+      const aiMessages: BaseMessage[] = (
+        response.messages as BaseMessage[]
+      ).filter(
+        (msg: BaseMessage) =>
           msg.lc_id?.[2] === "AIMessage" &&
           typeof msg.lc_kwargs?.content === "string" &&
           msg.lc_kwargs.content.trim(),
@@ -187,8 +190,8 @@ IMPORTANTE: Usa SEMPRE il formato JSON sopra indicato, mai testo semplice.
 
       console.log(`🔍 Selected AI message exists: ${!!aiMessage}`);
 
-      const rawResult =
-        aiMessage?.lc_kwargs.content ||
+      const rawResult: string =
+        (aiMessage?.lc_kwargs.content as string) ||
         "Mi dispiace, non sono riuscito a completare l'elaborazione della tua richiesta. Potresti riprovare con una domanda più semplice?";
       console.log(`🤖 Raw AI Response: "${rawResult.substring(0, 200)}..."`);
 
@@ -219,11 +222,11 @@ IMPORTANTE: Usa SEMPRE il formato JSON sopra indicato, mai testo semplice.
     } catch (error) {
       console.error("❌ Error during agent execution:", error);
 
-      if (error.message?.includes("timeout")) {
+      if ((error as Error).message?.includes("timeout")) {
         result =
           "La richiesta ha richiesto troppo tempo per essere elaborata. Prova con una domanda più semplice o riprova più tardi.";
-      } else if (error.name === "ToolException") {
-        console.error("🔧 Tool execution failed:", error.message);
+      } else if ((error as Error).name === "ToolException") {
+        console.error("🔧 Tool execution failed:", (error as Error).message);
         result =
           "Si è verificato un errore durante l'accesso ai dati. Riprova o contatta il supporto se il problema persiste.";
       } else {
@@ -261,7 +264,8 @@ IMPORTANTE: Usa SEMPRE il formato JSON sopra indicato, mai testo semplice.
     const updatedHistory = [...history, ...newMessages];
 
     // limito la lunghezza per non far crescere troppo Redis
-    const historyLimit = this.configService.get("REDIS_HISTORY_LIMIT") || 20;
+    const historyLimit =
+      this.configService.get<number>("REDIS_HISTORY_LIMIT") || 20;
     const trimmedHistory = updatedHistory.slice(-historyLimit);
 
     // Converto i messaggi in formato serializzabile
@@ -271,7 +275,7 @@ IMPORTANTE: Usa SEMPRE il formato JSON sopra indicato, mai testo semplice.
     }));
 
     // salvo in cache
-    const ttl = this.configService.get("REDIS_HISTORY_TTL") || 86400000; // 24h default
+    const ttl = this.configService.get<number>("REDIS_HISTORY_TTL") || 86400000; // 24h default
     await this.cacheManager.set(cacheKey, serializedHistory, ttl);
   }
 
@@ -281,7 +285,9 @@ IMPORTANTE: Usa SEMPRE il formato JSON sopra indicato, mai testo semplice.
   ): Promise<BaseMessage[]> {
     const cacheKey = `promptHistory:${user.id}:${clientId}`;
     const serializedHistory =
-      (await this.cacheManager.get<any[]>(cacheKey)) || [];
+      (await this.cacheManager.get<{ type: string; content: string }[]>(
+        cacheKey,
+      )) || [];
 
     // Converto i messaggi serializzati in BaseMessage
     return serializedHistory.map((msg) => {
@@ -317,7 +323,9 @@ IMPORTANTE: Usa SEMPRE il formato JSON sopra indicato, mai testo semplice.
       const jsonMatch = rawResponse.match(/```json\s*(\{.*?\})\s*```/s);
       if (jsonMatch) {
         const jsonStr = jsonMatch[1];
-        const parsed = JSON.parse(jsonStr);
+        const parsed: { response: string; [key: string]: any } = JSON.parse(
+          jsonStr,
+        ) as { response: string; [key: string]: any };
         if (parsed.response) {
           return parsed.response;
         }
@@ -328,7 +336,9 @@ IMPORTANTE: Usa SEMPRE il formato JSON sopra indicato, mai testo semplice.
         rawResponse.trim().startsWith("{") &&
         rawResponse.trim().endsWith("}")
       ) {
-        const parsed = JSON.parse(rawResponse);
+        const parsed: { response: string; [key: string]: any } = JSON.parse(
+          rawResponse,
+        ) as { response: string; [key: string]: any };
         if (parsed.response) {
           return parsed.response;
         }
@@ -339,7 +349,7 @@ IMPORTANTE: Usa SEMPRE il formato JSON sopra indicato, mai testo semplice.
     } catch (error) {
       console.log(
         `⚠️ Failed to parse JSON response, returning raw text:`,
-        error.message,
+        (error as Error).message,
       );
       return rawResponse;
     }

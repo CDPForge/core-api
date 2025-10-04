@@ -3,14 +3,12 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   Put,
   UseGuards,
 } from "@nestjs/common";
 import { RolesService } from "./roles.service";
-import { Role } from "./entities/role.entity";
 import { IsSuperAdmin } from "../decorators/is-super-admin.decorator";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { PermissionsGuard } from "../auth/permission.guard";
@@ -25,11 +23,11 @@ import {
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
-  @Post()
+  /*@Post()
   @IsSuperAdmin()
   create(@Body() createRoleDto: Partial<Role>) {
     return this.rolesService.create(createRoleDto);
-  }
+  }*/
 
   @Get()
   findAll() {
@@ -41,11 +39,11 @@ export class RolesController {
     return this.rolesService.findOne(+id);
   }
 
-  @Patch(":id")
+  /*@Patch(":id")
   @IsSuperAdmin()
   update(@Param("id") id: string, @Body() updateRoleDto: Partial<Role>) {
     return this.rolesService.update(+id, updateRoleDto);
-  }
+  }*/
 
   @Delete(":id")
   @IsSuperAdmin()

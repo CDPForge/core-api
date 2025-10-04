@@ -12,26 +12,30 @@ import {
   ResourceType,
 } from "../decorators/permissions.decorator";
 import { IS_SUPER_ADMIN_KEY } from "../decorators/is-super-admin.decorator";
-import { User } from "../users/user.model";
+
 import { Instance } from "src/instances/entities/instance.entity";
 import { Model } from "sequelize-typescript";
 import { ModelStatic } from "sequelize";
+import { Request } from "express";
+import { User as UserModel } from "../users/user.model";
+
+type AuthenticatedUser = {
+  sub: string | number;
+  user: Partial<UserModel>;
+  permissions: {
+    client?: number;
+    instance?: number;
+    permissions: { permission: string; level: number }[];
+  }[];
+};
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
-    const user: {
-      sub: string;
-      user: Partial<User>;
-      permissions: {
-        client: number;
-        instance?: number;
-        permissions: { permission: string; level: number }[];
-      }[];
-    } = request.user;
+    const request = context.switchToHttp().getRequest<Request>();
+    const user = request.user as AuthenticatedUser | undefined;
 
     // Controlla se l'endpoint richiede l'accesso da super-admin
     const isSuperAdminRequired = this.reflector.getAllAndOverride<boolean>(
@@ -66,24 +70,28 @@ export class PermissionsGuard implements CanActivate {
     );
 
     const clientId = parseInt(
-      await this.extractParam(
+      (await this.extractParam(
         request,
         requirement.clientIdParam || "client",
         requirement.resource,
         resourceId,
-      ),
+      )) as string,
     );
 
     const instanceId = parseInt(
-      await this.extractParam(
+      (await this.extractParam(
         request,
         requirement.instanceIdParam || "instance",
         requirement.resource,
         resourceId,
-      ),
+      )) as string,
     );
 
     // Verifica i permessi
+    if (!user) {
+      throw new ForbiddenException("User not authenticated");
+    }
+
     return PermissionsGuard.checkAccess(
       user,
       requirement.resourceType,
@@ -97,43 +105,47 @@ export class PermissionsGuard implements CanActivate {
    * Estrae un parametro da URL params, query params o body
    */
   private async extractParam(
-    request: any,
+    request: Request,
     paramName: string,
     Resource?: ModelStatic<Model>,
-    resourceId?: any,
-  ): Promise<any> {
+    resourceId?: unknown,
+  ): Promise<unknown> {
     if (Resource != null) {
-      const res = await Resource.findByPk(resourceId);
+      const res = await Resource.findByPk(resourceId as string | number);
       if (!res) return undefined;
       return res.get(paramName);
     }
 
+    const params = request.params as Record<string, unknown> | undefined;
+    const query = request.query as Record<string, unknown> | undefined;
+    const body = request.body as Record<string, unknown> | undefined;
+
     // 1. Prova nei parametri URL (es: /clients/:clientId)
-    if (request.params && request.params[paramName]) {
-      return request.params[paramName];
+    if (params && params[paramName]) {
+      return params[paramName];
     }
 
     // 2. Prova nei query parameters (es: ?clientId=123)
-    if (request.query && request.query[paramName]) {
-      return request.query[paramName];
+    if (query && query[paramName]) {
+      return query[paramName];
     }
 
     // 3. Prova nel body (per POST/PUT/PATCH)
-    if (request.body && request.body[paramName]) {
-      return request.body[paramName];
+    if (body && body[paramName]) {
+      return body[paramName];
     }
 
     return undefined;
   }
 
   public static async checkAccess(
-    user: any,
+    user: AuthenticatedUser,
     resourceType: ResourceType,
     requiredPermissions: { permission: string; level: string }[],
     clientId?: number,
     instanceId?: number,
   ): Promise<boolean> {
-    if (user.isSuperAdmin) return true;
+    if (user.user.isSuperAdmin) return true;
 
     if (resourceType == ResourceType.INSTANCE && !instanceId)
       resourceType = ResourceType.CLIENT;
@@ -170,7 +182,11 @@ export class PermissionsGuard implements CanActivate {
     instanceId: number,
     requiredPermissions: { permission: string; level: string }[],
   ): Promise<boolean> {
-    const clientId = (await Instance.findByPk(instanceId))?.get("client")!;
+    const instance = await Instance.findByPk(instanceId);
+    if (!instance) {
+      throw new ForbiddenException("Instance not found");
+    }
+    const clientId = instance.get("client");
 
     const hasInstancePermissions = requiredPermissions.every((rp) => {
       return permissions.some((p) => {

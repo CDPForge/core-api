@@ -33,10 +33,10 @@ export class PromptController {
     permissions: [{ permission: "prompt", level: PermissionLevel.EXECUTE }],
   })
   async create(
-    @Req() req: any,
+    @Req() req: { user: { user: User; permissions: { client: number }[] } },
     @Body() promptData: PromptRequest,
   ): Promise<string> {
-    const user = req.user!.user as User;
+    const user = req.user.user;
     const { message, clientId } = promptData;
 
     if (!clientId) {
@@ -44,9 +44,9 @@ export class PromptController {
     }
 
     // Verifica che l'utente abbia accesso al client specificato
-    const userPermissions = req.user!.permissions || [];
+    const userPermissions = req.user.permissions || [];
     const hasAccessToClient = userPermissions.some(
-      (perm: any) => perm.client === clientId,
+      (perm) => perm.client === clientId,
     );
 
     if (!hasAccessToClient) {
@@ -63,10 +63,10 @@ export class PromptController {
     permissions: [{ permission: "prompt", level: PermissionLevel.EXECUTE }],
   })
   async clearHistory(
-    @Req() req: any,
+    @Req() req: { user: { user: User; permissions: { client: number }[] } },
     @Body() body: { clientId: number },
   ): Promise<{ success: boolean }> {
-    const user = req.user!.user as User;
+    const user = req.user.user;
     const { clientId } = body;
 
     if (!clientId) {
@@ -74,9 +74,9 @@ export class PromptController {
     }
 
     // Verifica che l'utente abbia accesso al client specificato
-    const userPermissions = req.user!.permissions || [];
+    const userPermissions = req.user.permissions || [];
     const hasAccessToClient = userPermissions.some(
-      (perm: any) => perm.client === clientId,
+      (perm) => perm.client === clientId,
     );
 
     if (!hasAccessToClient) {

@@ -1,16 +1,15 @@
 import { Injectable } from "@nestjs/common";
-import { CreateSettingDto } from "./dto/create-setting.dto";
-import { UpdateSettingDto } from "./dto/update-setting.dto";
+
 import { Setting } from "./entities/setting.entity";
 
 @Injectable()
 export class SettingsService {
-  create(createSettingDto: CreateSettingDto) {
+  create() {
     return "This action adds a new setting";
   }
 
   async get(field: string, client?: number) {
-    const where: any = { field };
+    const where: Record<string, unknown> = { field };
     if (client !== undefined) {
       where.client = client;
     }
@@ -26,7 +25,7 @@ export class SettingsService {
     return `This action returns a #${id} setting`;
   }
 
-  update(id: number, updateSettingDto: UpdateSettingDto) {
+  update(id: number) {
     return `This action updates a #${id} setting`;
   }
 

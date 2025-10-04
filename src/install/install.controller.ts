@@ -17,7 +17,7 @@ export class InstallController {
 
   @UseGuards(FuxAuthGuard)
   @Get()
-  async test(@Res() res: Response) {
+  test(@Res() res: Response) {
     return res.sendStatus(200);
   }
 }

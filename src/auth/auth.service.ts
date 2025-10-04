@@ -31,13 +31,13 @@ export class AuthService {
 
   async login(user: User) {
     const payloadRefresh = {
-      sub: user.id.toString() as string,
+      sub: (user.id as number).toString(),
       user: { ...user.toJSON() } as Partial<User>,
     };
     delete payloadRefresh.user.password;
     const instances = await this.instanceService.findAll();
     let allvalues = instances.map((i) => ({
-      instance: i.id,
+      instance: i.id as number | null,
       client: i.client,
     }));
     const clients = [
@@ -48,7 +48,7 @@ export class AuthService {
     );
     const permissionsP = allvalues.map((v) => {
       return this.permissionService.findUserPermissions(
-        user.id,
+        user.id as number,
         v.client,
         v.instance,
       );
@@ -58,11 +58,13 @@ export class AuthService {
 
     const resPermission = permissions
       .map((permission, idx) => {
-        if (permission.length > 0) {
+        if ((permission as unknown[]).length > 0) {
           return {
             client: allvalues[idx].client,
             instance: allvalues[idx].instance,
-            permissions: permission.map((p) => ({
+            permissions: (
+              permission as { permission: string; level: number }[]
+            ).map((p) => ({
               permission: p.permission,
               level: p.level,
             })),
@@ -73,11 +75,14 @@ export class AuthService {
       })
       .filter((p) => p !== null);
 
-    const payloadAccess = { ...payloadRefresh, permissions: resPermission };
+    const payloadAccess = {
+      ...payloadRefresh,
+      permissions: resPermission,
+    } as Record<string, unknown>;
     const res = {
       user: {
         username: user.get("username"),
-        id: user.id,
+        id: user.id as number,
         email: user.get("email"),
       },
       accessToken: await this.jwtService.signAsync(payloadAccess, {
@@ -90,7 +95,11 @@ export class AuthService {
 
     const cacheKey = `refreshToken:${res.refreshToken}`;
     const refreshTokenTTL = 7 * 24 * 60 * 60 * 1000;
-    await this.cacheManager.set(cacheKey, user.id.toString(), refreshTokenTTL);
+    await this.cacheManager.set(
+      cacheKey,
+      (user.id as number).toString(),
+      refreshTokenTTL,
+    );
     return res;
   }
 }

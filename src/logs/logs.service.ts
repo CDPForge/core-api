@@ -8,13 +8,21 @@ export class LogsService {
   constructor(private readonly osProvider: OpensearchProvider) {
     this.osClient = this.osProvider.getClient();
   }
-  async getLogs(params: { client: number } & any) {
-    const filter = Object.keys(params).map((key) => {
-      return { term: { [key]: params[key] } };
-    });
+  async getLogs(params: { client: number } & Record<string, unknown>) {
+    const filter = Object.keys(params)
+      .filter((key) => params[key] != null) // Filter out null/undefined values
+      .map((key) => {
+        return {
+          term: {
+            [key]: {
+              value: params[key] as string | number | boolean,
+            },
+          },
+        };
+      });
 
     const res = await this.osClient.search({
-      index: "users-logs-" + params.client,
+      index: `users-logs-${params.client}`,
       body: {
         size: 10,
         sort: [

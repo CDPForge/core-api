@@ -63,11 +63,18 @@ export class PermissionsService {
     });
 
     // Usa toJSON() per ottenere tutti i dati incluse le associazioni
-    const userData = user?.toJSON();
+    const userData = user?.toJSON() as {
+      roles?: {
+        permissions?: {
+          name: string;
+          RolePermission?: { level: number };
+        }[];
+      }[];
+    };
 
     return (
-      userData?.roles?.flatMap((role: any) =>
-        role.permissions?.map((permission: any) => ({
+      userData?.roles?.flatMap((role) =>
+        role.permissions?.map((permission) => ({
           permission: permission.name,
           level: permission.RolePermission?.level,
         })),

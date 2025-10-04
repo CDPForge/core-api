@@ -43,14 +43,15 @@ export class SegmentsService {
     }
 
     // Add instance filter to the query
-    if (baseQuery.bool) {
-      if (!baseQuery.bool.must) {
-        baseQuery.bool.must = [];
+    const queryWithBool = baseQuery as { bool?: { must?: unknown[] } };
+    if (queryWithBool.bool) {
+      if (!queryWithBool.bool.must) {
+        queryWithBool.bool.must = [];
       }
-      baseQuery.bool.must.push({
+      queryWithBool.bool.must.push({
         term: { "instance.id": instanceId },
       });
-      return baseQuery;
+      return queryWithBool;
     } else {
       return {
         bool: {
@@ -147,7 +148,11 @@ export class SegmentsService {
 
   async preview(previewDto: PreviewSegmentDto): Promise<PreviewResult> {
     const startTime = Date.now();
-    const { clientId, instanceId, query } = previewDto;
+    const { clientId, instanceId, query } = previewDto as {
+      clientId: number;
+      instanceId?: number;
+      query: Record<string, unknown>;
+    };
 
     const index = `users-logs-${clientId}`;
 
@@ -156,7 +161,7 @@ export class SegmentsService {
 
     try {
       // Use cardinality aggregation to count unique device.id values
-      const response = await this.osClient.search({
+      const response = (await this.osClient.search({
         index,
         body: {
           size: 0, // We don't need the actual documents, just the aggregation
@@ -169,7 +174,9 @@ export class SegmentsService {
             },
           },
         },
-      });
+      })) as unknown as {
+        body: { aggregations: { unique_devices: { value: number } } };
+      };
 
       const executionTime = Date.now() - startTime;
 
@@ -188,7 +195,9 @@ export class SegmentsService {
         hasMore: count > 10000, // Indicate if there might be more results than what we can efficiently count
       };
     } catch (error) {
-      throw new Error(`Preview calculation failed: ${error.message}`);
+      throw new Error(
+        `Preview calculation failed: ${(error as Error).message}`,
+      );
     }
   }
 

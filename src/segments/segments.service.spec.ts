@@ -624,7 +624,7 @@ describe("SegmentsService", () => {
         query: { match_all: {} },
       };
 
-      const result = await service.preview(previewDto);
+      await service.preview(previewDto);
 
       const mockClient = mockOpensearchProvider.getClient();
       expect(mockClient.count).toHaveBeenCalledWith({
@@ -645,7 +645,7 @@ describe("SegmentsService", () => {
         query: { match_all: {} },
       };
 
-      const result = await service.preview(previewDto);
+      await service.preview(previewDto);
 
       const mockClient = mockOpensearchProvider.getClient();
       expect(mockClient.count).toHaveBeenCalledWith({

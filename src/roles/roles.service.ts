@@ -6,7 +6,7 @@ import { InstancesService } from "../instances/instances.service";
 @Injectable()
 export class RolesService {
   constructor(private readonly instancesService: InstancesService) {}
-  create(createRoleDto: Partial<Role>) {
+  create() {
     return "This action adds a new role";
   }
 
@@ -18,7 +18,7 @@ export class RolesService {
     return await Role.findByPk(id);
   }
 
-  update(id: number, updateRoleDto: Partial<Role>) {
+  update(id: number) {
     return `This action updates a #${id} role`;
   }
 
