@@ -5,6 +5,7 @@ import {
   UseGuards,
   Req,
   BadRequestException,
+  Get,
 } from "@nestjs/common";
 import { PromptService } from "./prompt.service";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
@@ -15,6 +16,8 @@ import {
   ResourceType,
 } from "../decorators/permissions.decorator";
 import { User } from "../users/user.model";
+import { FilterByAccess } from "src/decorators/filter-by-access.decorator";
+import { ClientsService } from "src/clients/clients.service";
 
 interface PromptRequest {
   message: string;
@@ -24,7 +27,7 @@ interface PromptRequest {
 @Controller("prompt")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class PromptController {
-  constructor(private readonly promptService: PromptService) {}
+  constructor(private readonly promptService: PromptService, private readonly clientService: ClientsService) {}
 
   @Post()
   @Permissions({
@@ -85,5 +88,17 @@ export class PromptController {
 
     await this.promptService.clearHistory(user, clientId);
     return { success: true };
+  }
+
+
+
+  @Get("clients")
+  @FilterByAccess({
+    permission: "prompt",
+    level: PermissionLevel.EXECUTE,
+    clientParam: "id",
+  })
+  async getPromptableClients() {
+    return this.clientService.findAll();
   }
 }
