@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
 import { ClientsService } from "./clients.service";
 import { CreateClientDto } from "./dto/create-client.dto";
@@ -19,6 +20,8 @@ import {
   ResourceType,
   Permissions,
 } from "src/decorators/permissions.decorator";
+import { FilterByAccess } from "src/decorators/filter-by-access.decorator";
+import { AccessFilterInterceptor } from "src/interceptors/access-filter.interceptor";
 
 @Controller("clients")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -32,6 +35,12 @@ export class ClientsController {
   }
 
   @Get()
+  @UseInterceptors(AccessFilterInterceptor)
+  @FilterByAccess({
+    permission: "client.management",
+    level: PermissionLevel.READ,
+    clientParam: "id"
+  })
   findAll() {
     return this.clientsService.findAll();
   }

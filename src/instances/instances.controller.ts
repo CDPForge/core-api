@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
 import { InstancesService } from "./instances.service";
 import { CreateInstanceDto } from "./dto/create-instance.dto";
@@ -18,6 +19,8 @@ import {
   Permissions,
   ResourceType,
 } from "../decorators/permissions.decorator";
+import { AccessFilterInterceptor } from "src/interceptors/access-filter.interceptor";
+import { FilterByAccess } from "src/decorators/filter-by-access.decorator";
 
 @Controller("instances")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -37,6 +40,12 @@ export class InstancesController {
   }
 
   @Get()
+  @UseInterceptors(AccessFilterInterceptor)
+  @FilterByAccess({
+    permission: "instance.management",
+    level: PermissionLevel.READ,
+    instanceParam: "id"
+  })
   findAll() {
     return this.instancesService.findAll();
   }

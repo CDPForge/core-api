@@ -221,6 +221,7 @@ export class PermissionsGuard implements CanActivate {
       return permissions.some((p) => {
         return (
           p.client === clientId &&
+          p.instance == null &&
           p.permissions.some((ip) => {
             return (
               ip.permission === rp.permission &&

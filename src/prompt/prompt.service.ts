@@ -82,6 +82,7 @@ export class PromptService
         5. L'utente non può vedere i tool. Usa i tool solo per elaborare la risposta finale.
         6. Usa il campo "date" al posto di @timestamp
         7. Non includere il nome dell'indice nella risposta
+        8. Considera che la data odierna è ${new Date().toISOString()}
 
 FORMATO RISPOSTA OBBLIGATORIO:
 Restituisci SEMPRE la risposta in questo formato JSON:
