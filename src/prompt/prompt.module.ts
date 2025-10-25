@@ -10,4 +10,4 @@ import { ClientsModule } from "src/clients/clients.module";
   providers: [PromptService, JwtAuthGuard],
   controllers: [PromptController],
 })
-export class PromptModule { }
+export class PromptModule {}

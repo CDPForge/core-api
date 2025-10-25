@@ -17,6 +17,8 @@ import { UsersService } from "./users.service";
 import { User } from "./user.model";
 import { IsSuperAdmin } from "src/decorators/is-super-admin.decorator";
 import { PermissionsGuard } from "src/auth/permission.guard";
+import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateUserDto } from "./dto/update-user.dto";
 
 @Controller("users")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -29,8 +31,8 @@ export class UsersController {
 
   @Post()
   @IsSuperAdmin()
-  create(@Body() createInstanceDto: Partial<User>) {
-    return this.usersService.create(createInstanceDto);
+  create(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.create(createUserDto);
   }
 
   @Get()
@@ -40,17 +42,24 @@ export class UsersController {
   }
 
   @Get(":id")
-  findOne(@Req() req: Request & {user?:{user: Partial<User>}}, @Param("id") id: string) {
-     if(req.user?.user.isSuperAdmin || req.user?.user.id == id) {
+  findOne(
+    @Req() req: Request & { user?: { user: Partial<User> } },
+    @Param("id") id: string,
+  ) {
+    if (req.user?.user.isSuperAdmin || req.user?.user.id == id) {
       return this.usersService.findOne(id);
     }
     throw new ForbiddenException();
   }
 
   @Patch(":id")
-  update(@Req() req: Request & {user?:{user: Partial<User>}}, @Param("id") id: number, @Body() updateUserDeto: Partial<User>) {
-    if(req.user?.user.isSuperAdmin || req.user?.user.id == id) {
-      return this.usersService.update(id, updateUserDeto);
+  update(
+    @Req() req: Request & { user?: { user: Partial<User> } },
+    @Param("id") id: number,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    if (req.user?.user.isSuperAdmin || req.user?.user.id == id) {
+      return this.usersService.update(id, updateUserDto);
     }
     throw new ForbiddenException();
   }

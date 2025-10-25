@@ -44,7 +44,7 @@ export class InstancesController {
   @FilterByAccess({
     permission: "instance.management",
     level: PermissionLevel.READ,
-    instanceParam: "id"
+    instanceParam: "id",
   })
   findAll() {
     return this.instancesService.findAll();

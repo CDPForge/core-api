@@ -39,7 +39,7 @@ export class ClientsController {
   @FilterByAccess({
     permission: "client.management",
     level: PermissionLevel.READ,
-    clientParam: "id"
+    clientParam: "id",
   })
   findAll() {
     return this.clientsService.findAll();

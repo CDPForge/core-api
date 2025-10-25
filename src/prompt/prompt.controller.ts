@@ -27,7 +27,10 @@ interface PromptRequest {
 @Controller("prompt")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class PromptController {
-  constructor(private readonly promptService: PromptService, private readonly clientService: ClientsService) {}
+  constructor(
+    private readonly promptService: PromptService,
+    private readonly clientService: ClientsService,
+  ) {}
 
   @Post()
   @Permissions({
@@ -89,8 +92,6 @@ export class PromptController {
     await this.promptService.clearHistory(user, clientId);
     return { success: true };
   }
-
-
 
   @Get("clients")
   @FilterByAccess({

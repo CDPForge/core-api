@@ -69,7 +69,7 @@ export class RolesController {
     ],
   })
   async addToUser(
-    @Param("userid") id: number,
+    @Param("id") id: number,
     @Body("instance") instance: number,
     @Body("client") client: number,
     @Body("roles") permission: number[],
@@ -84,7 +84,7 @@ export class RolesController {
   @Delete("/user/:id")
   @IsSuperAdmin()
   async removeFromUser(
-    @Param("userid") id: number,
+    @Param("id") id: number,
     @Body("instance") instance: number,
     @Body("roles") permission: number[],
   ) {
@@ -94,9 +94,9 @@ export class RolesController {
   @Post("/user/:id")
   @IsSuperAdmin()
   async setUserRoles(
-    @Param("userid") id: number,
+    @Param("id") id: number,
     @Body("rolesMap")
-    rolesMap: { client: number; instance: number; roles: number[] }[],
+    rolesMap: { client: number; instance?: number; roles: number[] }[],
   ) {
     return await this.rolesService.setUserRoles(id, rolesMap);
   }
