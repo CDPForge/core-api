@@ -23,21 +23,25 @@ export class ClientsService {
   ) {
     const client = await Client.create(clientBody, options);
 
-    const indexTemplate = await this.settingService.get("os.indexsetting");
-    if (!indexTemplate) {
-      throw new Error("Index setting not found");
+    const indexTemplateBody = await this.settingService.get("os.indextemplate");
+    if (!indexTemplateBody) {
+      throw new Error("Index template not found");
     }
 
-    const indexString = indexTemplate.replaceAll(
+    const templateString = indexTemplateBody.replaceAll(
       "${client_id}",
       (client.id as number).toString(),
     );
-    const indexBody = JSON.parse(indexString) as Record<string, unknown>;
+    const templateBody = JSON.parse(templateString) as Record<string, unknown>;
+
+    await this.osClient.indices.putIndexTemplate({
+      name: `users-logs-${client.id as number}-template`,
+      body: templateBody,
+    });
 
     //TODO: potremmo essere sotto transaction qui... creiamo l'indice anche in caso di rollback
     await this.osClient.indices.create({
-      index: `users-logs-${client.id as number}-000001`,
-      body: indexBody,
+      index: `users-logs-${client.id as number}-000001`
     });
 
     return client;
